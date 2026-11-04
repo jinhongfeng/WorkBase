@@ -1,0 +1,30 @@
+appId: com.workbase.app
+productName: WorkBase
+directories:
+  output: dist
+  buildResources: resources
+files:
+  - dist/main/**
+  - dist/preload/**
+  - dist/renderer/**
+  - package.json
+extraResources:
+  - from: src/main/db/migrations
+    to: migrations
+asar: true
+electronDist: node_modules/electron/dist
+asarUnpack:
+  - node_modules/**/better-sqlite3/**/*.node
+win:
+  icon: resources/icon.ico
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: portable
+      arch: [x64]
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  artifactName: WorkBase-Setup-${version}.${ext}
+portable:
+  artifactName: WorkBase-Portable-${version}.${ext}

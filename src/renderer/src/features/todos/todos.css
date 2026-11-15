@@ -1,0 +1,169 @@
+/* 待办页的新增区、筛选和任务分组。 */
+.todos-page .page-head { align-items: baseline; flex-wrap: wrap; gap: 8px 24px; margin-bottom: 20px; }
+.todos-page .page-head-meta { flex-wrap: wrap; gap: 8px 12px; font-size: 13px; }
+.todo-summary-item strong { margin-inline-start: 4px; color: var(--text); font-weight: 650; }
+.todo-summary-item + .todo-summary-item { padding-inline-start: 12px; border-inline-start: 1px solid var(--border-strong); }
+
+.todos-page .todo-compose {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 8px;
+}
+.todos-page .todo-compose :is(.input, .todo-add) { height: 40px; }
+.todos-page .todo-title-input { flex: 1 1 240px; font-size: 14px; }
+.todos-page .todo-date-input { width: 132px; padding-inline: 8px; }
+.todos-page .todo-date-input::-webkit-calendar-picker-indicator { cursor: pointer; }
+.todos-page .todo-priority-field { position: relative; }
+.todos-page .todo-priority-field > svg {
+  position: absolute;
+  inset-inline-start: 10px;
+  inset-block-start: 50%;
+  transform: translateY(-50%);
+  color: var(--text-2);
+  pointer-events: none;
+}
+.todos-page .todo-priority-field .input { width: 116px; padding-inline-start: 30px; }
+.todos-page .todo-compose :is(.todo-date-input, .todo-priority-field .input):not(:focus) { border-color: transparent; }
+.todos-page .todo-compose :is(.todo-date-input, .todo-priority-field .input):hover { background-color: var(--surface-2); }
+.todos-page .todo-add { flex: none; margin-inline-start: auto; }
+.todos-page .todo-filters {
+  display: flex;
+  gap: 4px 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border-strong);
+}
+.todos-page .todo-filters button {
+  min-height: 40px;
+  padding: 0 12px;
+  border-bottom: 2px solid transparent;
+  color: var(--text-2);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.todos-page .todo-filters button:hover { color: var(--text); }
+.todos-page .todo-filters button[aria-pressed="true"] { border-bottom-color: var(--accent); color: var(--accent); font-weight: 650; }
+.todos-page .todo-list-status { display: flex; gap: 4px; align-items: center; min-height: 40px; color: var(--text-2); font-size: 13px; }
+
+/* 分组标题独立显示，每项任务使用一张卡片。 */
+.todos-page .todo-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 3fr);
+  gap: 24px;
+  align-items: start;
+}
+.todos-page .todo-column { display: grid; gap: 20px; min-width: 0; }
+.todos-page .todo-column:only-child { grid-column: 1 / -1; }
+.todos-page .todo-column:only-child .todo-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 840px) {
+  .todos-page .todo-columns,
+  .todos-page .todo-column:only-child .todo-card-grid { grid-template-columns: minmax(0, 1fr); }
+}
+.todos-page .todo-group { margin: 0; }
+.todos-page .todo-group-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  min-height: 32px;
+  margin-bottom: 8px;
+}
+.todos-page .todo-group-head h2 { font-size: 16px; }
+.todos-page .todo-group-count { color: var(--text-3); font-size: 13px; }
+.todos-page .todo-clear { margin-inline-start: auto; }
+.todos-page .todo-card-grid { gap: 8px 12px; }
+
+/* 34×34 勾选区，视觉上 20×20。 */
+.todos-page .list-row.todo-task-card {
+  height: 52px;
+  padding: 4px 8px;
+  gap: 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  cursor: pointer;
+}
+.todos-page .list-row-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 32px 92px;
+  align-items: center;
+  gap: 8px;
+}
+.todos-page .list-row-title {
+  font-size: 14px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.todos-page :is(.todo-priority, .todo-due) { color: var(--text-2); font-size: 12px; white-space: nowrap; }
+.todos-page .todo-priority { display: flex; align-items: center; gap: 4px; }
+.todos-page .todo-priority::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--text-3); }
+.todos-page .todo-priority[data-priority="1"]::before { background: var(--danger); }
+.todos-page .todo-priority[data-priority="2"]::before { background: var(--warn); }
+.todos-page .todo-due { text-align: end; }
+.todos-page .todo-due[data-overdue="true"] { color: var(--danger); font-weight: 600; }
+.todo-title-tip {
+  position: fixed;
+  z-index: 60;
+  width: max-content;
+  max-width: min(420px, calc(100vw - 16px));
+  padding: 8px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+  color: var(--text);
+  font-size: 13px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.todos-page .list-row .check {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  border-radius: var(--r-xs);
+  transition: background var(--dur-1) var(--ease-ui);
+}
+.todos-page .list-row .check:hover { background: var(--surface-3); }
+.todos-page .todo-check-mark {
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-xs);
+  background: var(--surface);
+  transition: border-color var(--dur-1) var(--ease-ui), background var(--dur-1) var(--ease-ui), color var(--dur-1) var(--ease-ui), transform var(--dur-1) var(--ease-ui);
+}
+.todos-page .list-row .check:hover .todo-check-mark { border-color: var(--accent); }
+.todos-page .list-row .check:active .todo-check-mark { transform: scale(.9); }
+.todos-page .todo-task-card[data-done="true"] { background: var(--surface-2); }
+.todos-page .todo-task-card[data-done="true"]:is(:hover, :focus-within) { background: var(--surface); }
+.todos-page .todo-task-card[data-done="true"] .todo-check-mark {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.todos-page .todo-task-card[data-done="true"] .list-row-title {
+  color: var(--text-2);
+  text-decoration: line-through;
+  text-decoration-color: var(--text-3);
+}
+.todos-page .todo-task-card[data-done="true"] .todo-priority::before { background: var(--text-3); }
+.todos-page .todo-clear:hover { background: var(--danger-soft); color: var(--danger); }
+
+html[data-workspace-style="paper"] .todos-page .todo-group-head {
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border-strong);
+}
+
+html[data-workspace-style="paper"] .todos-page :is(.todo-task-card, .todo-check-mark) {
+  border-radius: var(--r-lg);
+}

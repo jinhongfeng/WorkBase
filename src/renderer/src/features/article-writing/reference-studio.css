@@ -1,0 +1,104 @@
+.article-writing-mode { margin-block-end: 18px; }
+.hotspot-source-count {
+  min-width: 17px;
+  padding-inline: 4px;
+  border-radius: 999px;
+  background: var(--selection-fill);
+  color: var(--action-ink);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.reference-studio, .hotspot-board { max-width: 920px; margin-inline: auto; }
+.reference-studio { display: grid; gap: 16px; }
+/* 三段面板是线性流程（素材 → 拆解 → 成稿），标题前加步骤序号；
+   纯 CSS counter，结果面板挂载时自动排到 03。 */
+.reference-studio { counter-reset: writing-step; }
+.reference-studio .reference-panel h2::before {
+  counter-increment: writing-step;
+  content: '0' counter(writing-step);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-3);
+  margin-inline-end: 8px;
+}
+/* 容器与全站 .card 同语言（surface + shadow-1），边框语言交给 token。 */
+.reference-panel {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  padding: 20px;
+  overflow-wrap: anywhere;
+}
+.reference-panel h2, .reference-panel h3, .reference-panel h4, .reference-panel p { margin: 0; }
+.reference-panel h2 { font-size: 17px; }
+.reference-panel h3 { font-size: 14px; }
+.reference-panel h4 { font-size: 13px; }
+.reference-panel .button { justify-self: start; }
+.reference-inline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.reference-panel-head { justify-content: space-between; }
+.reference-picker, .reference-stack { display: grid; gap: 10px; min-width: 0; }
+.reference-platforms { justify-self: start; flex-wrap: wrap; }
+.reference-board-heading { justify-content: space-between; }
+.reference-board-heading > div:last-child { column-gap: 12px; }
+/* 表单与长文本限宽：一行 900px+ 的正文超出舒适阅读行宽（参考编辑类版式）。 */
+.reference-panel .field { max-width: 42rem; }
+.reference-meta { font-size: 12px; }
+.reference-ranking { border-block: 1px solid var(--border-strong); }
+.reference-ranking > li {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  margin-inline: -10px;
+  border-radius: var(--r-xs);
+  transition: background var(--dur-1) var(--ease-ui);
+}
+.reference-ranking > li:hover { background: color-mix(in srgb, var(--surface-2) 55%, transparent); }
+.reference-ranking > li + li { border-top: 1px solid var(--border); }
+.reference-rank { color: var(--text-3); text-align: center; font-variant-numeric: tabular-nums; }
+.reference-link { color: var(--action-ink); font-weight: 600; }
+.reference-link:hover { text-decoration: underline; }
+.reference-link svg { display: inline; margin-inline-start: 4px; vertical-align: middle; }
+.reference-ranking-copy { min-width: 0; }
+.reference-selected { display: grid; gap: 8px; }
+.reference-selected li {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  background: var(--surface-2);
+  border-radius: var(--r-sm);
+}
+.reference-selected-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+.reference-source-name { font-weight: 600; }
+.reference-findings, .reference-shots { display: grid; gap: 10px; }
+.reference-findings > section, .reference-shots > li { padding: 12px 14px; background: var(--surface-2); border-radius: var(--r-sm); }
+.reference-studio dl { display: grid; grid-template-columns: 105px minmax(0, 1fr); gap: 6px 10px; margin: 8px 0 0; }
+.reference-studio dt { color: var(--text-2); font-weight: 600; }
+.reference-studio dd { margin: 0; white-space: pre-wrap; }
+.reference-angle-list { display: grid; gap: 6px; }
+.reference-angle-list .button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  justify-self: stretch;
+  justify-content: start;
+  min-width: 0;
+  height: auto;
+  padding: 8px 12px;
+  text-align: start;
+  white-space: normal;
+  border-color: var(--border-strong);
+}
+.reference-angle-list .button span { grid-column: 1; }
+.reference-angle-list .button svg { grid-row: 1; grid-column: 2; color: var(--accent); }
+.reference-angle-list .button[aria-pressed='true'] { background: var(--selection-fill); border-color: var(--action-border); }
+.reference-output-controls .input { width: auto; }
+.reference-result .reference-stack > section { border-top: 1px solid var(--border-strong); padding-block-start: 12px; }
+.reference-bullets { padding-inline-start: 20px; list-style: disc; }
+.reference-bullets > li + li { margin-block-start: 4px; }
+
+@media (max-width: 640px) {
+  .reference-panel { padding: 14px; }
+  .reference-studio dl { grid-template-columns: 76px minmax(0, 1fr); }
+}

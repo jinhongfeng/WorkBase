@@ -1,0 +1,80 @@
+.bills-page {
+  display: grid;
+  max-width: 1100px;
+  gap: 20px;
+  align-content: start;
+  min-width: 0;
+}
+
+.bills-page .page-head { margin-bottom: 0; align-items: center; flex-wrap: wrap; }
+.bills-actions { flex-wrap: wrap; }
+
+/* 顶部概览合并为一张横幅卡：本月收支在左，时间范围筛选在卡头，范围统计在分隔线右侧。 */
+.bills-overview { display: grid; gap: 0; }
+.bills-overview-head { flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; }
+.bills-overview-body { display: flex; flex-wrap: wrap; align-items: stretch; gap: 12px 32px; }
+.bills-overview-body .stat-card {
+  flex: 1 1 150px;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+/* 两组数字之间的竖分隔线：中灰色保证深浅主题都可见。 */
+.bills-overview-divider { flex: 0 0 1px; align-self: stretch; background: var(--text-3); }
+.bills-page .segmented { flex-wrap: wrap; }
+
+/* 交易明细默认折叠，点击标题行展开。 */
+.bills-details { margin-top: 4px; }
+.bills-details-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  text-align: left;
+  cursor: pointer;
+}
+.bills-details-toggle:hover { background: var(--surface-2); }
+.bills-details-toggle .card-meta { margin-left: auto; }
+.bills-details-chevron { flex-shrink: 0; color: var(--text-2); transition: transform var(--dur-2) var(--ease-ui); }
+.bills-details-toggle[aria-expanded="true"] .bills-details-chevron { transform: rotate(180deg); }
+.bills-details-body { margin-top: 12px; }
+
+.bills-loading { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 220px; color: var(--text-2); }
+
+.bills-charts {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 24px;
+}
+/* 图表卡复用 .card，去掉旧的内边距与顶边线。 */
+.bills-chart { min-width: 0; padding: 0; border-top: 0; }
+.bills-chart-empty { display: grid; place-content: center; min-height: 280px; margin: 0; color: var(--text-2); font-size: 13px; text-align: center; }
+
+.bills-category-chart .bar-label > span:last-child { overflow-wrap: anywhere; }
+.bills-category-chart .bar-row[data-tone='muted'] .bar-rank { visibility: hidden; }
+
+.bills-details { margin-top: 4px; }
+.bills-page .bills-income { color: var(--success); }
+.bills-page .bills-negative { color: var(--danger); }
+.bills-data-note { margin: 12px 0 0; font-size: 12px; color: var(--text-2); }
+
+.bills-form { display: grid; gap: 12px; }
+.bills-form > button { justify-self: end; }
+.bills-form-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.bills-form-actions .button.ghost { margin-right: auto; }
+.bills-page .alert-body { overflow-wrap: anywhere; }
+.bills-file-name { overflow-wrap: anywhere; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bills-loading .spinner { animation: none; }
+}
+
+/* 交易明细的搜索与收/支筛选行。 */
+.bills-details-filters { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-bottom: 10px; }
+.bills-details-filters .search-field { flex: 1 1 220px; max-width: 320px; }

@@ -1,0 +1,344 @@
+.focus-room {
+  --room-gutter: 32px;
+  --room-tools: 132px;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-rows: var(--titlebar) minmax(0, 1fr) auto;
+  width: 100%;
+  height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+}
+.focus-room:focus { outline: none; }
+.focus-room:fullscreen { grid-template-rows: 0 minmax(0, 1fr) auto; }
+.focus-room > .wallpaper { position: absolute; z-index: -1; }
+.focus-room > .wallpaper :is(img, video) { object-fit: cover; }
+.focus-room:has(> :is(.wallpaper, .focus-ambience-canvas)) {
+  --room-wallpaper-tint: color-mix(in srgb, var(--bg) var(--wp-chrome-tint), transparent);
+  & .focus-room-quiet { align-content: end; }
+  & :is(.focus-room-quiet h1, .focus-room-library, .focus-room-reader, .focus-room-view-header, .focus-room-readout, .focus-room-control.button:not(:hover)) {
+    background: var(--room-wallpaper-tint);
+    border-radius: var(--r-sm);
+  }
+  & .focus-room-readout { padding: 8px 12px; }
+  & .focus-room-quiet h1 { padding: 4px 12px; }
+  & .focus-room-view-header { width: fit-content; max-width: 100%; }
+}
+.focus-room-drag { -webkit-app-region: drag; }
+.focus-room-readout { display: grid; gap: 6px; }
+.focus-room-session { display: flex; align-items: center; color: var(--text-2); font-size: 12px; }
+.focus-room-timer + span:not(:empty) { margin-inline-start: 8px; }
+.focus-room-timer { font: 500 16px/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.focus-background-dialog.dialog {
+  width: min(720px, 92vw);
+  max-height: 82dvh;
+  padding: 0;
+  overflow: hidden;
+}
+.focus-background-dialog[open] { display: flex; flex-direction: column; }
+.focus-background-dialog > header.section-heading { flex-shrink: 0; margin: 0; padding: 22px 22px 14px; }
+.focus-background-content { min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 2px 22px 22px; }
+.focus-background-dialog .wallpaper-settings { margin-top: 0; padding-top: 0; border-top: 0; }
+.focus-room-progress {
+  appearance: none;
+  width: 56px;
+  height: 2px;
+  border: 0;
+}
+.focus-room-progress::-webkit-progress-bar { background: var(--border-strong); }
+.focus-room-progress::-webkit-progress-value { background: var(--text-3); }
+.focus-room-stage { min-height: 0; overflow: auto; overscroll-behavior: contain; }
+.focus-room-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px var(--room-gutter) 12px;
+}
+.focus-room-control.button { min-height: 44px; color: var(--text-2); }
+.focus-room-control.button:hover { color: var(--text); }
+.focus-room-popover {
+  position: fixed;
+  inset: auto var(--room-gutter) 64px auto;
+  width: min(264px, calc(100% - var(--room-gutter) * 2));
+  max-height: calc(100dvh - 64px - var(--titlebar));
+  margin: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  color: var(--text);
+}
+.focus-room-popover:popover-open { display: grid; gap: 8px; }
+.focus-room-group { display: grid; gap: 2px; }
+.focus-room-group h2 {
+  padding: 4px 8px 2px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-2);
+}
+.focus-room-popover .button { justify-content: flex-start; min-height: 36px; padding-inline: 8px; }
+.focus-room-scenes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+.focus-room-scenes .button[aria-pressed="true"] { color: var(--accent); background: var(--accent-soft); }
+.focus-room-quiet {
+  min-height: 100%;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 16px;
+  padding: 28px var(--room-gutter);
+  text-align: center;
+}
+.focus-room-quiet h1 {
+  font-size: 40px;
+  font-weight: 600;
+  text-wrap: balance;
+  max-width: 720px;
+  overflow-wrap: anywhere;
+}
+.focus-room-stage:has(> .focus-study-tools) { padding-inline-end: calc(var(--room-tools) + var(--room-gutter)); }
+.focus-room-stage:has(> .focus-room-reading) {
+  padding-inline: var(--room-gutter);
+  scrollbar-gutter: stable both-edges;
+}
+.focus-study-tools {
+  position: fixed;
+  inset: 50% var(--room-gutter) auto auto;
+  transform: translateY(-50%);
+  display: grid;
+  gap: 4px;
+  width: var(--room-tools);
+  padding: 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+}
+.focus-study-tools h2 { padding: 4px 8px; color: var(--text-2); font-size: 12px; }
+.focus-study-tools .button { justify-content: flex-start; min-height: 40px; padding-inline: 8px; }
+.focus-study-tools .button[aria-pressed="true"] { color: var(--accent); background: var(--accent-soft); }
+.focus-study-tools p { padding: 4px 8px; color: var(--text-2); font-size: 12px; overflow-wrap: anywhere; }
+.focus-study-options { display: grid; gap: 8px; }
+.focus-study-options legend { margin-bottom: 8px; }
+.focus-study-options label { display: flex; align-items: center; gap: 8px; }
+.focus-study-settings { text-align: left; }
+.focus-breath-dial {
+  display: grid;
+  place-items: center;
+  width: 176px;
+  aspect-ratio: 1;
+  margin-bottom: 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+}
+.focus-breath-circle {
+  width: 100%;
+  aspect-ratio: 1;
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  background: var(--accent-soft);
+  transform: scale(.54);
+}
+.focus-breath-circle[data-phase="in"] { transform: scale(1); transition: transform 6s ease-in-out; }
+.focus-breath-circle[data-phase="out"] { transition: transform 6s ease-in-out; }
+/* 相位时长由组件按当前节奏写入 transitionDuration，这里只保留缓动与终态。 */
+@starting-style {
+  .focus-breath-circle[data-phase="in"] { transform: scale(.54); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .focus-breath-circle[data-phase] { transform: scale(.74); }
+}
+/* 放松场景：方式切换 + 呼吸节奏/冥想时长选择，样式保持安静。 */
+.focus-relax-modes, .focus-relax-patterns {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-lg);
+  background: color-mix(in srgb, var(--surface) 62%, transparent);
+}
+.focus-relax-modes { margin-bottom: 8px; }
+.focus-relax-modes .button[aria-pressed="true"],
+.focus-relax-patterns .button[aria-pressed="true"] { color: var(--accent); background: var(--accent-soft); }
+.focus-relax-note { margin: 0; color: var(--text-2); font-size: 13px; }
+/* 冥想与护眼的引导句比呼吸的长，字号收一档。 */
+.focus-relax h1 { font-size: clamp(24px, 3vw, 32px); }
+.focus-relax-dial { position: relative; }
+.focus-relax-count { font: 650 26px/1 var(--font-ui); font-variant-numeric: tabular-nums; }
+.focus-room-library, .focus-room-reader {
+  width: min(100%, 960px);
+  margin-inline: auto;
+  padding: 40px var(--room-gutter);
+}
+:is(.focus-room-library, .focus-room-reader):has(> .focus-room-empty),
+.focus-english:has(> .english-articles > .english-article-empty) {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.focus-room-reader:has(> .focus-room-empty) > .button { align-self: start; }
+.focus-room-library-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+.focus-room-library-head > .button { flex-shrink: 0; }
+.focus-room-library-title { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.focus-room-library-title .button { flex-shrink: 0; }
+.focus-room-library-label, .focus-room-view-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.focus-room-library-label { margin-block: 20px 12px; }
+.focus-room-library-label span { color: var(--text-2); font-size: 12px; }
+.focus-room-empty { flex: 1 0 auto; display: grid; place-content: safe center; justify-items: center; gap: 10px; padding: 24px 0; color: var(--text-2); text-align: center; }
+.focus-room-file-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.focus-room-file-list button, .focus-room-gallery button {
+  min-width: 0;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  text-align: left;
+}
+.focus-room-file-list button { display: flex; align-items: center; gap: 12px; padding: 10px 12px; min-height: 44px; }
+.focus-room-file-list button svg { color: var(--accent); }
+.focus-room-file-list button:hover, .focus-room-gallery button:hover { background: var(--surface-3); }
+.focus-room-gallery { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.focus-room-gallery button { overflow: hidden; }
+.focus-room-gallery img { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; background: var(--surface-2); }
+.focus-room-gallery span { display: block; padding: 6px 10px; }
+.focus-room-media-view {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 12px var(--room-gutter) 16px;
+}
+.focus-room-view-header h1 { font-size: 15px; font-weight: 600; }
+.focus-room-view-header .button { flex-shrink: 0; }
+.focus-room-media-frame {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  background: var(--bg-2);
+}
+.focus-room-media-frame :is(img, video) { width: 100%; height: 100%; min-height: 0; object-fit: contain; }
+.focus-room-media-frame p { padding: 16px; text-align: center; }
+.focus-room-notes { max-width: 760px; }
+.focus-english { max-width: 720px; }
+.focus-english-heading { min-width: 0; overflow-wrap: anywhere; }
+.focus-english-heading h1 { font-size: 20px; }
+.focus-english .focus-room-library-head .button { flex-shrink: 0; }
+.focus-english-tabs { align-self: flex-start; margin-top: 16px; }
+.focus-english-review { margin-top: 20px; }
+.focus-english-error { margin-top: 12px; color: var(--danger); }
+.focus-english > .english-articles { margin-top: 24px; }
+.focus-room-search { display: flex; align-items: center; gap: 10px; color: var(--text-2); margin-block: 16px; }
+.focus-room-reading {
+  --reading-side: 0px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) min(800px, calc(100% - 2 * (var(--reading-side) + 16px))) minmax(0, 1fr);
+  gap: 16px;
+  min-height: 100%;
+}
+.focus-room-reading:has(> .focus-room-outline) { --reading-side: clamp(148px, 16vw, 200px); }
+.focus-room-stage:has(> .focus-study-tools) .focus-room-reading:not(:has(> .focus-room-outline)) {
+  --reading-side: var(--room-tools);
+}
+.focus-room-reader { grid-column: 2; min-width: 0; width: 100%; }
+/* 笔记标题与工作台笔记页的标题同款（.notes-app .notes-title），随 --notes-font 走界面风格。 */
+.focus-room-reader h1 { margin-block: 16px 20px; overflow-wrap: anywhere; font: 650 20px/1.5 var(--notes-font); letter-spacing: normal; }
+/* 正文排版全部复用笔记页：基础 .prose 在 styles/features.css（article 挂了 prose 类），
+   按界面风格分化的排版在 features/notes/notes.css（:is(.notes-app .prose, .focus-room-note)）。
+   这里只保留阅读场景自身的行为：渲染隔离、宽表格滚动与大纲跳转的滚动边距。
+   min-height 用元素选择器压过 features.css 里 .prose 的 300px（编辑器输入区专用），阅读正文不需要。 */
+article.focus-room-note { contain: layout paint; min-height: 0; }
+.focus-room-note :is(h1, h2, h3, h4) { scroll-margin-top: 24px; }
+.focus-room-note table { display: block; overflow: auto; }
+.focus-room-outline {
+  position: sticky;
+  top: 16px;
+  align-self: start;
+  justify-self: end;
+  margin-top: 16px;
+  display: grid;
+  gap: 8px;
+  width: min(100%, 200px);
+  max-height: min(64dvh, 560px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+}
+.focus-room-outline h2 { padding: 0 6px 2px; color: var(--text-2); font-size: 12px; font-weight: 500; }
+.focus-room-outline .outline-link { white-space: normal; overflow-wrap: anywhere; }
+.focus-room-outline .outline-link:hover { background: var(--surface-3); color: var(--text); }
+
+@media (max-width: 740px) {
+  .focus-room { --room-gutter: 16px; }
+  .focus-room-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .focus-room-quiet h1 { font-size: 30px; }
+  .focus-room-stage:has(> .focus-room-reading) {
+    display: flex;
+    flex-direction: column;
+  }
+  .focus-room-stage:has(> .focus-room-reading) > .focus-study-tools {
+    position: static;
+    transform: none;
+    order: -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    align-self: center;
+    width: auto;
+  }
+  .focus-room-reading { display: block; flex: 1 0 auto; min-height: auto; }
+  .focus-room-outline {
+    position: static;
+    width: 100%;
+    max-height: 24dvh;
+  }
+  .focus-room-reader { padding-block: 24px; }
+}
+
+/* 媒体播放：左右箭头叠在画面上，循环切换。 */
+.focus-room-view-meta { flex: 1; display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.focus-room-view-meta span { flex-shrink: 0; color: var(--text-2); font-size: 12px; font-variant-numeric: tabular-nums; }
+.focus-room-media-frame { position: relative; }
+.focus-room-media-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  color: var(--text);
+  background: color-mix(in srgb, var(--bg) 62%, transparent);
+}
+.focus-room-media-nav:hover { background: color-mix(in srgb, var(--bg) 84%, transparent); }
+.focus-room-media-nav.prev { left: 8px; }
+.focus-room-media-nav.next { right: 8px; }
+.focus-room-media-hint { text-align: center; font-size: 12px; color: var(--text-2); }
+/* 场景菜单自定义 */
+.dialog.focus-scene-settings { width: min(520px, 92vw); }
+.focus-scene-block h3 { margin-bottom: 8px; font-size: 12px; font-weight: 500; color: var(--text-2); }
+.focus-scene-list { display: grid; gap: 4px; }
+.focus-scene-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 6px 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+}
+.focus-scene-name { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.focus-scene-actions { display: flex; gap: 2px; flex-shrink: 0; }
+.focus-scene-add { display: flex; flex-wrap: wrap; gap: 4px; }
+.focus-scene-empty { color: var(--text-2); font-size: 12px; }

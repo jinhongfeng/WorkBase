@@ -1,0 +1,147 @@
+.ielts-page > .page-head { align-items: center; flex-wrap: wrap; gap: 12px 16px; margin-bottom: 16px; }
+.ielts-page > .page-head .page-head-actions { flex-shrink: 1; }
+.ielts-page:has(> .english-articles > .english-article-empty) {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.ielts-page .ielts-gen { width: min(520px, calc(100vw - 48px)); }
+.ielts-gen form { display: grid; gap: 14px; }
+.ielts-gen form .actions { margin-top: 2px; }
+.ielts-gen .alert-body { overflow-wrap: anywhere; }
+.ielts-gen .input::placeholder { color: var(--text-2); }
+.ielts-gen .input:not(:focus), .ielts-set-controls .input:not(:focus) { border-color: var(--border-strong); }
+.ielts-gen-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.ielts-gen-fields.reading { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ielts-gen .ielts-passage-input { width: 100%; min-height: 108px; resize: vertical; }
+.ielts-gen .topic-chips { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.ielts-gen .topic-chips .chip { height: 28px; background: transparent; }
+.ielts-gen .topic-chips .chip:hover { background: var(--surface-2); }
+.ielts-gen .topic-chips [aria-pressed="true"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.ielts-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  margin: 0 0 14px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-2);
+  font-size: 12px;
+}
+.ielts-summary > div { display: flex; align-items: baseline; gap: 5px; }
+.ielts-summary dd { margin: 0; color: var(--text); font-weight: 650; font-variant-numeric: tabular-nums; }
+.ielts-summary dd span { color: var(--text-2); font-weight: 400; }
+
+.ielts-library-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-bottom: 14px;
+}
+.ielts-set-field { flex: 0 1 232px; min-width: 0; }
+.ielts-set-controls { display: flex; align-items: center; gap: 6px; }
+.ielts-set-controls .input { flex: 1; min-width: 0; text-overflow: ellipsis; }
+.ielts-set-controls .button { flex-shrink: 0; }
+.ielts-library-bar .segmented button { white-space: nowrap; }
+.ielts-set-summary { flex-basis: 100%; margin: 0; }
+
+.ielts-page .word-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 296px), 1fr)); gap: 12px; }
+.ielts-page .word-card {
+  min-width: 0;
+  padding: 14px;
+  background: var(--surface);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-1);
+  overflow-wrap: anywhere;
+  /* hover 抬 1px + 阴影，不动底色，呼应统一语言。 */
+  transition: box-shadow var(--dur-2) var(--ease-ui), transform var(--dur-2) var(--ease-ui);
+}
+.ielts-page .word-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-2); }
+.ielts-page .word-head { display: grid; gap: 3px; }
+.ielts-page .word-top { display: flex; align-items: center; gap: 8px; }
+.ielts-page .word-top .icon-btn { flex-shrink: 0; color: var(--text-2); }
+.ielts-page .word-top .icon-btn:hover { color: var(--accent); }
+.ielts-page .word-term { flex: 1; min-width: 0; font: 650 17px/1.35 var(--font-ui); }
+.ielts-page .sentence .word-term { font-weight: 600; font-size: 15px; line-height: 1.5; }
+.ielts-page .word-sub { display: flex; align-items: center; gap: 8px; color: var(--text-3); font-size: 11.5px; }
+.ielts-page .word-phonetic, .ielts-review-card .word-phonetic { color: var(--text-2); font: 11.5px/1.4 var(--font-mono); }
+.ielts-page .word-pos { color: var(--text-3); }
+.ielts-page .word-meaning, .ielts-review-card .word-meaning { margin: 8px 0 0; color: var(--text); font-size: 13px; line-height: 1.6; }
+/* 例句块用 2px 强调色竖线分隔，呼应设计语言。 */
+.ielts-page .word-example, .ielts-review-card .word-example { margin-top: 8px; border-left: 2px solid var(--accent); padding-left: 10px; color: var(--text-2); font-size: 12.5px; line-height: 1.6; }
+.ielts-page .word-example .translation { display: block; margin-top: 2px; color: var(--text-3); }
+.ielts-page .word-foot { display: flex; align-items: center; gap: 6px; margin-top: 10px; }
+.ielts-page .word-foot .chip { height: 22px; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ielts-page .word-foot .chip.clay { color: var(--text-2); background: var(--surface-2); border-color: var(--border); }
+.ielts-page .word-foot .spacer { flex: 1; }
+
+.ielts-page .review-stage {
+  min-height: 0;
+  padding: 24px 16px;
+  background: var(--surface);
+  border-radius: var(--r-md);
+}
+.ielts-review-card .meter { margin-bottom: 16px; }
+.ielts-review-card .flashcard {
+  display: block;
+  width: 100%;
+  padding: 24px;
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+  box-shadow: none;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+.ielts-review-card .flashcard:hover { background: var(--surface-3); }
+.ielts-review-card .fc-term { display: block; font: 650 24px/1.3 var(--font-ui); }
+.ielts-review-card .fc-hint { font-size: 12px; letter-spacing: normal; color: var(--text-2); }
+.ielts-card-answer { display: grid; gap: 6px; margin-top: 14px; }
+.ielts-card-pronunciation { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; color: var(--text-2); }
+.ielts-review-card .word-example { text-align: left; }
+.ielts-review-card .review-actions { display: flex; justify-content: center; gap: 8px; margin-top: 16px; }
+
+.ielts-reading {
+  width: 100%;
+  padding: clamp(16px, 3vw, 36px);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--text);
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.ielts-reading-section + .ielts-reading-section { border-top: 1px solid var(--border); margin-top: 24px; padding-top: 20px; }
+.ielts-reading h2 { margin: 0 0 8px; font-size: 21px; line-height: 1.3; }
+.ielts-reading h3 { margin: 0 0 10px; font-size: 16px; line-height: 1.4; }
+.ielts-reading h4 { margin: 0 0 8px; font-size: 15px; line-height: 1.55; }
+.ielts-reading p { max-width: 76ch; margin: 0; }
+.ielts-reading .ielts-reading-instruction { color: var(--text-2); }
+.ielts-reading-passage { font-size: 16px; line-height: 1.75; white-space: pre-wrap; margin: 12px 0 16px; user-select: text; }
+.ielts-reading-passage p + p { margin-top: 12px; }
+.ielts-reading-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; margin-bottom: 10px; }
+.ielts-reading-heading h3 { margin: 0; }
+.ielts-reading-words { display: grid; gap: 6px; }
+.ielts-reading-word { border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--surface-2); }
+.ielts-reading-word summary { padding: 8px 12px; cursor: pointer; font-weight: 650; }
+.ielts-reading-word summary:hover { color: var(--accent); }
+.ielts-reading-word .ielts-card-answer { margin: 0; padding: 0 12px 12px; }
+.ielts-reading-word .ielts-card-pronunciation { justify-content: flex-start; }
+.ielts-reading-word :is(.word-meaning, .word-example) { margin-top: 0; }
+.ielts-reading-word .word-example { border: 0; padding: 0; }
+.ielts-reading-sentence { max-width: 76ch; }
+.ielts-reading-sentence + .ielts-reading-sentence { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+.ielts-reading :is(ul, dl) { margin: 0; }
+.ielts-reading ul { padding-inline-start: 20px; list-style: disc; }
+.ielts-reading-examples { display: grid; gap: 6px; padding-top: 8px; }
+.ielts-reading :is(.ielts-reading-examples, .ielts-reading-substitutions) > div { display: flex; align-items: baseline; gap: 8px; }
+.ielts-reading-examples dt { flex: none; color: var(--text-2); font-weight: 600; }
+.ielts-reading-examples dd span { display: block; }
+.ielts-reading-substitutions > div { flex-wrap: wrap; }
+.ielts-reading-substitutions dt { font-weight: 650; }

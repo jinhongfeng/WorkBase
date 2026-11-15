@@ -1,0 +1,104 @@
+.article-writing-layout {
+  display: grid;
+  grid-template-columns: minmax(230px, 290px) minmax(0, 1fr);
+  align-items: start;
+  gap: 20px;
+  max-width: 1220px;
+  margin-inline: auto;
+}
+
+/* 面板容器与全站 .card 同语言：surface + shadow-1，不自带边框；
+   拟态的凸起、纸面的暖影、苹果的毛玻璃由 token 与 appearance.css 接管，
+   避免这里出现第二套边框取值（外观一致性约束第 1 条）。 */
+.article-writing-form,
+.article-writing-draft { min-width: 0; padding: 20px; }
+
+.article-writing-form { display: grid; gap: 16px; }
+.article-writing-form h2,
+.article-writing-draft h2 { margin: 0; font-size: 17px; }
+.article-writing-form .segmented { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.article-writing-label { color: var(--text-2); font-size: 12px; font-weight: 500; }
+.article-writing-hint { margin: 2px 0 0; font-size: 12px; }
+
+.article-writing-draft {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 18px;
+  /* 无草稿时也撑满可视高度：底部不再留大片空白，空态居中于可用区。 */
+  min-height: max(424px, calc(100dvh - 268px));
+}
+
+.article-writing-draft-head,
+.article-writing-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.article-writing-draft-head { justify-content: space-between; column-gap: 20px; }
+.article-writing-draft .empty-state { align-self: center; justify-self: center; }
+.article-writing-editor {
+  display: grid; gap: 16px; width: min(100%, 44rem); margin-inline: auto;
+  /* 草稿生成完成从无到有挂载，播放一次列表进入动效。 */
+  animation: rise var(--dur-2) var(--ease-ui) both;
+}
+/* 标题与导语文档化：无框透明底，像在稿纸上写而不是填表单；
+   焦点走 focus ring，悬停给一层极淡底提示可编辑。正文保留边框，
+   大面积输入需要清晰的区域边界。 */
+.article-writing-editor .article-writing-title {
+  height: auto; min-height: 36px;
+  padding: 2px 8px; margin-inline: -8px;
+  font-size: 21px; font-weight: 650; line-height: 1.4;
+  background: transparent; border-color: transparent;
+}
+.article-writing-editor .article-writing-title:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--surface-2) 62%, transparent);
+}
+.article-writing-editor .article-writing-title:focus {
+  border-color: transparent;
+  box-shadow: 0 0 0 2px var(--focus-ring);
+}
+.article-writing-editor .article-writing-lead {
+  padding: 4px 8px; margin-inline: -8px;
+  background: transparent; border-color: transparent;
+  color: var(--text-2);
+}
+.article-writing-editor .article-writing-lead:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--surface-2) 62%, transparent);
+}
+.article-writing-editor .article-writing-lead:focus {
+  border-color: transparent;
+  box-shadow: 0 0 0 2px var(--focus-ring);
+}
+.article-writing-editor .textarea { field-sizing: content; min-height: 66px; resize: none; }
+.article-writing-editor .article-writing-body { min-height: 232px; font-size: 15px; line-height: 1.8; }
+.article-writing-summary { grid-template-columns: 1fr auto; align-items: center; }
+.article-writing-summary .textarea { grid-column: 1 / -1; }
+
+/* 待核实是发布前的警示区：用语义 warn 色组，不新增取值。 */
+.article-writing-checks {
+  padding: 14px;
+  border-radius: var(--r-sm);
+  background: var(--warn-soft);
+  overflow-wrap: anywhere;
+}
+
+.article-writing-checks h3 { margin: 0; font-size: 13px; color: var(--warn); }
+.article-writing-checks p { margin: 5px 0 0; }
+.article-writing-checks ul { margin: 8px 0 0; padding-inline-start: 20px; list-style: disc; }
+.article-writing-checks li + li { margin-block-start: 4px; }
+
+/* 生成中骨架：形状贴近最终版面（标题 / 导语 / 正文 / 摘要），
+   完成后布局跳变最小；复用全局 .skeleton 的 shimmer。 */
+.article-writing-skeleton {
+  display: grid;
+  gap: 16px;
+  width: min(100%, 44rem);
+  margin-inline: auto;
+  align-self: center;
+}
+.article-writing-sk-title { height: 36px; width: 62%; }
+.article-writing-sk-lead { height: 46px; }
+.article-writing-sk-body { height: 200px; }
+.article-writing-sk-summary { height: 54px; width: 86%; }
+
+@media (max-width: 820px) {
+  .article-writing-layout { grid-template-columns: minmax(0, 1fr); }
+  .article-writing-form > .button { justify-self: start; }
+  .article-writing-draft { min-height: 424px; }
+}

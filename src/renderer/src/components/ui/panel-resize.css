@@ -1,0 +1,22 @@
+.panel-resize-handle {
+  position: relative;
+  z-index: 3;
+  width: 16px;
+  margin-inline-start: -8px;
+  color: var(--text-2);
+  cursor: ew-resize;
+  touch-action: none;
+  user-select: none;
+}
+.panel-resize-handle::before {
+  content: '';
+  position: absolute;
+  top: calc(50% - 12px);
+  inset-inline: 6px;
+  height: 24px;
+  border-inline: 1px solid currentColor;
+}
+.panel-resize-handle[aria-disabled="true"] { cursor: default; opacity: .4; }
+.panel-resize-handle[aria-disabled="false"]:is(:hover, :active, :focus-visible) { color: var(--accent); }
+.panel-resize-handle:focus-visible { outline: none; }
+.panel-resize-handle:focus-visible::before { outline: 2px solid var(--accent); outline-offset: 3px; }

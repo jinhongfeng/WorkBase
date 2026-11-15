@@ -2,13 +2,13 @@ import Database from 'better-sqlite3'
 import { app } from 'electron'
 import { mkdirSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { dataDirectory, databasePath } from '../storage'
 
 let connection: Database.Database | undefined
 export function getDatabase(): Database.Database {
   if (connection) return connection
-  const directory = join(app.getPath('userData'), 'data')
-  mkdirSync(directory, { recursive: true })
-  const db = new Database(join(directory, 'workbench.db'))
+  mkdirSync(dataDirectory(), { recursive: true })
+  const db = new Database(databasePath())
   db.pragma('journal_mode = WAL')
   db.pragma('foreign_keys = ON')
   const directoryMigrations = app.isPackaged ? join(process.resourcesPath, 'migrations') : join(app.getAppPath(), 'src/main/db/migrations')

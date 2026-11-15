@@ -1,0 +1,17 @@
+.list-sidebar { position: relative; min-width: 0; }
+.list-sidebar-content { display: flex; flex: 1; min-height: 0; flex-direction: column; }
+.list-sidebar-content[hidden] { display: none; }
+
+.list-sidebar .list-sidebar-toggle {
+  position: absolute;
+  inset-block-start: var(--list-sidebar-toggle-top, 14px);
+  inset-inline-end: 12px;
+  width: 28px;
+  height: 29px;
+  min-height: 29px;
+  padding: 0;
+}
+.list-sidebar[data-collapsed="true"] .list-sidebar-toggle {
+  inset-inline: 0;
+  margin-inline: auto;
+}

@@ -1,0 +1,119 @@
+.media-page { display: flex; flex-direction: column; width: 100%; min-height: 100%; color: var(--text); position: relative; }
+.media-page .media-back { align-self: flex-start; min-height: 44px; margin-bottom: 12px; }
+.media-page .page-head { align-items: flex-end; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 16px; }
+.media-page .page-head-copy { flex: 1 1 200px; gap: 4px; }
+.media-page .page-head h1 { overflow-wrap: anywhere; }
+.media-page .page-head-actions { flex-shrink: 1; justify-content: flex-end; margin-inline-start: auto; }
+.media-page .page-head:has(+ .media-active-group-description) { margin-bottom: 8px; }
+.media-drag-overlay { position: fixed; inset: 16px; z-index: 60; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; border: 3px dashed var(--accent); border-radius: var(--r-lg); background: var(--overlay); color: var(--accent); font-size: 17px; font-weight: 600; pointer-events: none; }
+.media-drag-overlay svg { opacity: 0.9; }
+.media-drag-overlay { animation: fade var(--dur-1) var(--ease-ui) both; }
+.media-actions { display: flex; align-items: center; gap: 12px; }
+.media-group-error { margin-bottom: 12px; }
+.media-group-card {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0 0 56px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.media-group-card:disabled { cursor: default; }
+.media-group-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.media-group-cover {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 1;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.media-group-cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.media-group-panel {
+  position: absolute;
+  isolation: isolate;
+  inset: auto 0 0;
+  display: grid;
+  gap: 6px;
+  min-height: 81px;
+  padding: 20px 14px 12px;
+  transform: translateY(max(0px, calc(100% - 81px)));
+  transition: transform var(--dur-3) var(--ease-ui);
+}
+.media-group-panel::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: var(--surface);
+  clip-path: polygon(0 0, 67% 0, calc(67% + 12px) 12px, 100% 12px, 100% 100%, 0 100%);
+}
+.media-group-card:focus-visible .media-group-panel { transform: translateY(0); }
+.media-group-title { min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 16px; line-height: 21px; font-weight: 600; }
+.media-group-title span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.media-group-title svg { flex-shrink: 0; color: var(--accent); }
+.media-group-description { color: var(--text-2); font-size: 13px; line-height: 17px; overflow-wrap: anywhere; }
+.media-active-group-description { max-width: 70ch; margin: 0 0 16px; color: var(--text-2); overflow-wrap: anywhere; white-space: pre-line; }
+.media-content { flex: 1; min-height: 400px; }
+.media-content:has(> :is(.library-empty, .empty-state-region)) { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+.media-page .media-toolbar { gap: 8px 12px; margin-bottom: 12px; }
+.media-filters { flex: 1 1 330px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.media-toolbar.is-selecting { position: sticky; top: 0; z-index: 2; padding: 6px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); }
+.media-selection-actions { margin-inline-start: auto; display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+.media-selection-actions > span { color: var(--text-2); font-size: 13px; }
+.media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 216px), 1fr)); gap: 20px; }
+.media-card { min-width: 0; position: relative; border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; background: var(--surface); transition: border-color var(--dur-2) var(--ease-ui), box-shadow var(--dur-2) var(--ease-ui), transform var(--dur-2) var(--ease-ui); }
+.media-card:hover, .media-card:focus-within { border-color: var(--border-strong); box-shadow: var(--shadow-2); transform: translateY(-1px); }
+.media-card-open { width: 100%; height: 100%; display: block; padding: 0; border: 0; background: transparent; color: inherit; text-align: left; cursor: pointer; }
+.media-card-open:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
+.media-card:has([aria-checked="true"]) { border-color: var(--accent); }
+.media-card-check { position: absolute; top: 8px; right: 8px; display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid var(--border-strong); border-radius: var(--r-sm); background: var(--surface); }
+.media-card-check svg { visibility: hidden; }
+.media-card-open[aria-checked="true"] .media-card-check { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); }
+.media-card-open[aria-checked="true"] .media-card-check svg { visibility: visible; }
+/* 4:3 预览区，圆角统一走 token。 */
+.media-thumb { display: flex; align-items: center; justify-content: center; width: 100%; aspect-ratio: 4 / 3; background: var(--surface-2); overflow: hidden; }
+.media-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.media-thumb-video, .media-thumb-error { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text-2); font-size: 12px; }
+.media-thumb-video svg { color: var(--accent); }
+.media-card-info { padding: 12px 16px; }
+.media-card-info h2 { margin: 0 0 8px; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.media-card-info p { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 8px; margin: 0; color: var(--text-2); font-size: 12px; }
+.media-card-info .media-card-location { display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* 操作浮层：默认隐藏，hover/focus-within 显示，触屏常显。 */
+.media-card-actions { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; padding: 4px; background: var(--surface); border-radius: var(--r-sm); opacity: 0; transition: opacity var(--dur-1) var(--ease-ui); }
+.media-card:hover .media-card-actions, .media-card:focus-within .media-card-actions { opacity: 1; }
+.media-card-actions .media-delete { color: var(--danger); }
+.media-form { display: flex; flex-direction: column; gap: 12px; }
+.media-form p { margin: 0; color: var(--text-2); font-size: 12px; }
+.media-form .media-form-error { color: var(--danger); overflow-wrap: anywhere; }
+.media-form .media-actions { justify-content: flex-end; margin-top: 12px; }
+.media-preview { position: fixed; inset: 0; margin: 0; width: 100vw; height: 100vh; max-width: none; max-height: none; padding: 120px 80px 64px; border: 0; background: var(--surface); color: var(--text); box-shadow: var(--shadow-2); }
+.media-preview[open] { display: flex; align-items: center; justify-content: center; }
+.media-preview::backdrop { background: var(--overlay); }
+/* 预览层铺满整个窗口，右上角是原生窗口按钮区（46px 高、右侧 148px 宽），
+   DOM 元素放进去会被按钮压住且点击被系统截走，工具栏必须整体避开。 */
+.media-preview-head { position: absolute; top: 0; left: 0; right: 0; padding: 62px 148px 24px 32px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.media-preview-head > div:first-child { min-width: 0; }
+.media-preview-head h2 { margin: 0 0 4px; font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.media-preview-head span, .media-preview-hint { font-size: 12px; color: var(--text-2); }
+.media-preview-image, .media-preview-video { max-width: 100%; max-height: 100%; object-fit: contain; }
+.media-preview-video { width: min(100%, 1080px); }
+.media-preview .media-prev, .media-preview .media-next { position: absolute; top: 50%; transform: translateY(-50%); }
+.media-preview .media-prev { left: 24px; }
+.media-preview .media-next { right: 24px; }
+.media-preview-hint { position: absolute; bottom: 20px; left: 0; right: 0; text-align: center; pointer-events: none; }
+.media-preview-error { text-align: center; color: var(--text-2); }
+@media (max-width: 1100px) { .media-grid { gap: 16px; } }
+@media (hover: hover) { .media-group-card:hover .media-group-panel { transform: translateY(0); } }
+@media (hover: none) { .media-card-actions { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .media-card, .media-card-actions, .media-group-panel { transition: none; } }

@@ -1,0 +1,238 @@
+/* ---------- 标题栏 ---------- */
+.wallpaper { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.wallpaper img, .wallpaper video { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: scale-down; object-position: center; background: var(--bg); transition: opacity .18s ease-out; }
+.wallpaper--workspace[data-fit="cover"] :is(img, video):not([data-fit-whole]),
+.wallpaper--workspace[data-fit="fill-window"] :is(img, video) { object-fit: cover; }
+.wallpaper-scrim { position: absolute; inset: 0; z-index: 2; background: rgba(var(--wp-scrim-rgb), var(--wp-overlay, .22)); }
+/* 工作台蒙层不再压在壁纸层里（被内容底色盖住看不见），而是叠加在
+   标题栏、侧栏和内容区的磨砂底色之上：滑动「暗色蒙层」立即生效。
+   清晰背景（data-clear）时取消磨砂和暗色蒙层，保留较淡的内容区底色。
+   --wp-overlay 由 Wallpaper 组件写到根节点，磨砂面才能读到。 */
+body:has(.wallpaper--workspace:not([data-clear="true"])) :is(.titlebar, .sidebar)::before {
+  background:
+    linear-gradient(rgba(var(--wp-scrim-rgb), var(--wp-overlay, .22)), rgba(var(--wp-scrim-rgb), var(--wp-overlay, .22))),
+    color-mix(in srgb, var(--surface-2) var(--wp-sidebar-tint), transparent);
+  backdrop-filter: blur(var(--wp-sidebar-blur));
+}
+body:has(.wallpaper--workspace[data-clear="true"]) :is(.titlebar, .sidebar)::before {
+  background: var(--wp-sidebar-clear-background);
+}
+/* 页面共用一层可读性底色，功能页只为列表和工具栏补充轻量分区。
+   不覆盖 surface，保证输入框、内容卡片和弹窗仍有完整底色。 */
+body:has(.wallpaper--workspace) .main-content {
+  --workspace-canvas: transparent;
+  --workspace-panel: color-mix(in srgb, var(--surface-2) var(--wp-panel-tint), transparent);
+  --workspace-toolbar: color-mix(in srgb, var(--surface) var(--wp-toolbar-tint), transparent);
+}
+body:has(.wallpaper--workspace:not([data-clear="true"])) .main-content {
+  background:
+    linear-gradient(rgba(var(--wp-scrim-rgb), var(--wp-overlay, .22)), rgba(var(--wp-scrim-rgb), var(--wp-overlay, .22))),
+    color-mix(in srgb, var(--bg) var(--wp-content-tint), transparent);
+}
+/* 清晰背景：大幅降低内容区蒙层、并移除暗色蒙层，让壁纸更清楚。 */
+body:has(.wallpaper--workspace[data-clear="true"]) .main-content {
+  background: color-mix(in srgb, var(--bg) var(--wp-content-tint-clear), transparent);
+}
+/* 边框与阴影不随壁纸状态变化：--border / --border-strong / --shadow-* 的基线值
+   已在 tokens.css 里定为浅色描边方案，壁纸态与无壁纸态共用同一套。
+   这里只处理「背景层」差异，任何新增的壁纸覆盖都不许再改边框和阴影。 */
+.titlebar {
+  height: var(--titlebar);
+  border-bottom: 1px solid var(--border-strong);
+  user-select: none;
+  position: relative;
+  z-index: 12;
+}
+/* 壁纸铺到原生窗口按钮下方，有壁纸时整条标题栏和侧栏共用底色。 */
+.titlebar::before,
+.sidebar::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+.titlebar::before {
+  background: linear-gradient(to right, var(--surface-2) var(--sidebar), var(--workspace-titlebar, var(--bg)) var(--sidebar));
+}
+.titlebar-inner {
+  margin-left: env(titlebar-area-x, 0px);
+  width: env(titlebar-area-width, 100%);
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding-right: 8px;
+}
+.titlebar-drag {
+  -webkit-app-region: drag;
+  flex: 1;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+}
+.titlebar-brand {
+  width: var(--sidebar);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.brand-mark {
+  width: 24px; height: 24px; border-radius: var(--r-xs);
+  display: block; flex-shrink: 0; object-fit: contain;
+}
+.brand-name { display: none; font-size: 13px; font-weight: 600; letter-spacing: -.01em; }
+html[data-sidebar="wide"] .titlebar-brand { justify-content: flex-start; padding-left: 16px; }
+html[data-sidebar="wide"] .brand-name { display: inline; }
+.titlebar-search {
+  -webkit-app-region: no-drag;
+  flex-shrink: 0;
+  height: 32px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-2);
+  font-size: 12.5px;
+  white-space: nowrap;
+  transition: border-color var(--dur-2) var(--ease-ui), color var(--dur-2) var(--ease-ui);
+}
+.titlebar-search:hover { border-color: var(--border-strong); color: var(--text); }
+.titlebar-search:active { color: var(--accent); }
+.titlebar-search kbd { border-width: 1px; background: transparent; color: inherit; }
+kbd {
+  font: 10px/1.4 var(--font-mono);
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  padding: 1px 5px;
+  color: var(--text-3);
+  background: var(--surface-2);
+}
+
+/* ---------- 主体 ---------- */
+.app-shell { height: calc(100dvh - var(--titlebar)); display: flex; position: relative; z-index: 1; }
+.main-content { flex: 1; min-width: 0; overflow: auto; overscroll-behavior: contain; position: relative; isolation: isolate; }
+.plugin-frame { display: block; width: 100%; height: 100%; border: 0; }
+
+/* ---------- 侧栏 ---------- */
+.sidebar {
+  width: var(--sidebar); flex-shrink: 0;
+  border-right: 1px solid var(--border-strong);
+  position: relative; z-index: 3;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px; padding: 12px 0;
+}
+.sidebar::before { background: var(--surface-2); }
+.sidebar[data-mode="wide"] { align-items: stretch; padding-inline: 8px; }
+.nav-button {
+  width: 40px; height: 40px; border-radius: var(--r-sm);
+  border: 1px solid transparent;
+  display: grid; place-items: center; position: relative;
+  color: var(--text-2);
+  transition: background-color var(--dur-2) var(--ease-ui), color var(--dur-2) var(--ease-ui);
+}
+.nav-button:hover:not(.selected) { background: var(--surface-3); color: var(--text); }
+.nav-label { font-size: 13px; line-height: 1.2; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nav-button.selected .nav-label { font-weight: 600; }
+.sidebar[data-mode="wide"] .nav-button {
+  width: 100%; height: 36px;
+  display: flex; align-items: center; gap: 8px; padding: 0 12px;
+}
+.sidebar[data-mode="wide"] .nav-label { max-width: 100%; flex: 0 1 auto; min-width: 0; }
+.sidebar[data-mode="wide"] .pinned-nav,
+.sidebar[data-mode="wide"] .nav-bottom { gap: 2px; align-items: stretch; }
+.sidebar[data-mode="rail"] .pinned-nav { align-items: center; }
+.pinned-nav { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+/* 宽态满载（8 项常用）且窗口很矮时，只让常用区内部滚动，不挤压「更多」与底部入口。 */
+.sidebar[data-mode="wide"] .pinned-nav { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.sidebar[data-mode="wide"] .pinned-nav::-webkit-scrollbar { width: 0; height: 0; }
+.sidebar[data-mode="wide"] .pinned-nav .nav-button:focus-visible { outline-offset: -2px; }
+.sidebar .nav-button { flex: 0 0 auto; }
+.nav-bottom { margin-top: auto; display: flex; flex-direction: column; gap: 4px; align-items: center; flex: 0 0 auto; }
+
+/* ---------- 气泡 ---------- */
+.tooltip-wrap { position: relative; display: inline-flex; }
+.tooltip {
+  visibility: hidden; opacity: 0;
+  position: absolute; left: calc(100% + 14px); top: 50%; transform: translateY(-50%) translateX(-4px);
+  white-space: nowrap; z-index: 60;
+  padding: 5px 10px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  font-size: 12px;
+  pointer-events: none; transition: opacity .14s ease, transform .14s ease;
+}
+.tooltip::before {
+  content: ''; position: absolute; left: -4px; top: 50%; width: 7px; height: 7px;
+  transform: translateY(-50%) rotate(45deg);
+  background: var(--surface); border-left: 1px solid var(--border); border-bottom: 1px solid var(--border);
+}
+.tooltip-wrap:has(.nav-button:hover) .tooltip,
+.sidebar:not(:has(.nav-button:hover)) .tooltip-wrap:has(.nav-button:focus-visible) .tooltip {
+  visibility: visible; opacity: 1; transform: translateY(-50%);
+}
+
+/* ---------- 页面骨架 ---------- */
+.page { max-width: 1100px; margin: 0 auto; padding: 28px 32px 48px; }
+
+.section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.section-heading h2 { display: flex; align-items: center; gap: 8px; }
+.section-heading .count { font: 11px var(--font-mono); color: var(--text-3); font-weight: 400; }
+.section-heading .heading-side { display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--text-3); }
+
+/* ---------- 更多面板 ---------- */
+.panel-overlay { position: fixed; inset: 0; background: var(--overlay); z-index: 20; animation: fade .15s ease-out both; }
+.more-panel {
+  position: fixed; top: calc(var(--titlebar) + 12px); bottom: 16px; left: calc(var(--sidebar) + 12px);
+  width: 320px; display: flex; flex-direction: column;
+  background: var(--surface);
+  border: 0;
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-2);
+  z-index: 30; overflow: hidden;
+  animation: rise .16s ease-out both;
+}
+.more-panel header { padding: 16px 16px 8px; }
+.more-panel .section-heading { margin-bottom: 10px; }
+.more-panel header h2 { font-size: 17px; }
+.more-panel > .scroll-area { flex: 1; padding: 0 8px 12px; }
+.more-panel > .scroll-area:has(> .no-results:only-child) { display: grid; align-content: safe center; padding-block: 0; }
+.more-panel footer { border-top: 1px solid var(--border); padding: 13px 20px; font-size: 11px; color: var(--text-3); background: var(--surface-2); }
+.more-panel .full-hint { color: var(--accent-2); margin-bottom: 5px; }
+.module-group { margin-top: 10px; }
+.module-group h3 { padding: 0 12px 4px; font-size: 12px; color: var(--text-3); font-weight: 600; }
+.module-row { display: flex; align-items: center; border-radius: var(--r-sm); height: 40px; }
+.module-row:hover { background: var(--surface-2); }
+.module-link { display: flex; align-items: center; gap: 11px; padding: 0 12px; flex: 1; height: 100%; text-align: left; font-size: 13px; border-radius: var(--r-sm); }
+.module-link svg { color: var(--text-2); }
+.module-link:hover svg { color: var(--accent); }
+.pin-button { width: 36px; height: 30px; display: grid; place-items: center; color: var(--text-3); border-radius: 8px; }
+.pin-button:hover { background: var(--surface-3); color: var(--text); }
+.pin-button.is-pinned { color: var(--accent); }
+.no-results { padding: 18px; color: var(--text-3); font-size: 12px; text-align: center; }
+
+/* ---------- 列表面板（保留给后续模块） ---------- */
+.list-panel { width: 260px; border-right: 1px solid var(--border); padding: 22px 16px; background: var(--workspace-panel, var(--surface-2)); flex-shrink: 0; }
+
+@media (max-width: 1180px) {
+  .page { padding: 26px 28px 52px; }
+}
+@media (max-width: 980px) {
+  .page { padding: 22px 20px 44px; }
+}
+
+/* 模块角标：待办到期等数量。窄态覆盖在图标右上角，宽态排在行尾与文字同行。 */
+.nav-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font: 600 10px/1 var(--font-ui);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.sidebar[data-mode="wide"] .nav-badge { position: static; margin-left: auto; }
+/* 选中胶囊上的角标反色，保持可读。 */
+.nav-button.selected .nav-badge { background: var(--action-ink); color: var(--action-base); }

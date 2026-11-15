@@ -2,7 +2,10 @@ node_modules/
 dist/
 out/
 temp/
+.workbuddy/
 release/
+/release-*/
+/electron.vite.config.ts.*.mjs
 *.db
 *.db-wal
 *.db-shm

@@ -1,0 +1,33 @@
+.vault-page { display: grid; gap: 16px; }
+.vault-page:has(> .vault-accounts > .empty-state) { min-height: 100%; display: flex; flex-direction: column; }
+.vault-accounts:has(> .empty-state) { display: flex; flex-direction: column; flex: 1 0 auto; }
+.vault-accounts > .empty-state { margin-block: auto; }
+.vault-card { display: grid; gap: 12px; padding: 18px; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--surface); }
+.vault-card h2 { margin: 0; font-size: 15px; }
+.vault-card p { margin: 0; color: var(--text-2); }
+.vault-unlock { width: min(100%, 420px); margin-inline: auto; text-align: start; }
+.vault-page > .empty-state-region { padding-block: 16px; }
+.vault-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.vault-section-heading span, .vault-entry span, .vault-list small { color: var(--text-2); }
+.vault-list { list-style: none; display: grid; padding: 0; margin: 0; }
+.vault-list li { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid var(--border); }
+.vault-entry { min-width: 0; flex: 1; display: grid; gap: 2px; }
+.vault-entry > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vault-edit { display: grid; gap: 14px; }
+.vault-checkbox { display: flex; align-items: center; gap: 8px; }
+
+/* 密码生成器：密码框同行「生成」按钮 + 熵值强度条。 */
+.vault-page .vault-password-row { display: flex; gap: 8px; align-items: flex-start; }
+.vault-page .vault-password-row .input { flex: 1; }
+.vault-page .vault-password-row .button { flex: none; height: 34px; }
+.vault-page .vault-strength { display: flex; align-items: center; gap: 8px; margin-top: 7px; }
+.vault-page .vault-strength .input-hint { margin: 0; }
+.vault-page .vault-strength-bar { display: inline-flex; gap: 3px; }
+.vault-page .vault-strength-bar i { width: 26px; height: 4px; border-radius: 2px; background: var(--border-strong); transition: background var(--dur-1) var(--ease-ui); }
+.vault-page .vault-strength[data-score="0"] .vault-strength-bar i:nth-child(1) { background: var(--danger); }
+.vault-page .vault-strength[data-score="1"] .vault-strength-bar i:is(:nth-child(1), :nth-child(2)) { background: var(--warn); }
+.vault-page .vault-strength[data-score="2"] .vault-strength-bar i { background: var(--success); }
+.vault-page .vault-strength[data-score="3"] .vault-strength-bar i { background: var(--accent); }
+.vault-page .vault-generator { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--surface-2); }
+.vault-page .vault-length { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-2); }
+.vault-page .vault-length .input { width: 64px; height: 28px; }

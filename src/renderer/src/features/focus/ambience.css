@@ -1,0 +1,71 @@
+.focus-room > .focus-ambience-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  image-rendering: pixelated;
+}
+.focus-ambience-dialog.dialog {
+  width: min(680px, 92vw);
+  max-height: 84dvh;
+  overflow: auto;
+}
+.focus-ambience-section { display: grid; gap: 10px; }
+.focus-ambience-section + .focus-ambience-section {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.focus-ambience-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 30px;
+}
+.focus-ambience-heading h3 { font-size: 14px; font-weight: 600; }
+.focus-ambience-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.focus-ambience-option {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 4px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  text-align: left;
+}
+.focus-ambience-option:hover { background: var(--surface-3); }
+.focus-ambience-option[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.focus-ambience-option span { padding: 2px 5px 4px; font-size: 13px; font-weight: 500; }
+.focus-ambience-preview {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2.15;
+  border-radius: calc(var(--r-sm) - 3px);
+  image-rendering: pixelated;
+}
+.focus-ambience-player {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(120px, .7fr);
+  gap: 12px;
+  align-items: center;
+}
+.focus-ambience-volume {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 5px;
+  color: var(--text-2);
+  font-size: 12px;
+}
+.focus-ambience-volume span { font-variant-numeric: tabular-nums; }
+.focus-ambience-volume input { grid-column: 1 / -1; width: 100%; }
+.focus-ambience-error { color: var(--danger); font-size: 13px; }
+
+@media (max-width: 540px) {
+  .focus-ambience-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .focus-ambience-player { grid-template-columns: minmax(0, 1fr) auto; }
+  .focus-ambience-volume { grid-column: 1 / -1; }
+}

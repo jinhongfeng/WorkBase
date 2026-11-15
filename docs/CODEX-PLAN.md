@@ -56,9 +56,9 @@ codex exec -C "E:/vibecoding/workbase" -s workspace-write --skip-git-repo-check 
 |---|---|---|---|
 | P0 骨架与导航 | 可运行外壳、模块注册表、常用/更多导航、设计系统、能出 exe | `001_init.sql` | tag `p0` |
 | P1 笔记与待办 | 记录核心 + 全局搜索 | 无（复用 001） | tag `p1` |
-| P2 邮件 | IMAP 同步 + 列表详情 + 四组图表 | `002_mail.sql` | tag `p2` |
-| P3 支付宝账单 | 邮箱一键获取 + 解析去重 + 账单统计 | `003_bills.sql` | tag `p3` |
-| P4 AI 与数据源 | 流式对话 + 上下文动作 + RSS/JSON | `004_ai.sql`、`005_sources.sql` | tag `p4` |
+| P2 邮件 | IMAP 同步 + 列表详情 + 四组图表 | `005_mail.sql` | tag `p2` |
+| P3 支付宝账单 | 邮箱一键获取 + 解析去重 + 账单统计 | `006_bills.sql` | tag `p3` |
+| P4 AI 与数据源 | 流式对话 + 上下文动作 + RSS/JSON | `008_ai.sql`、`009_sources.sql` | tag `p4` |
 | P5 打磨与发布 | 快捷键、空态、暗色、备份、安装包 | 无 | tag `v1.0.0` |
 
 **迁移归属已成定稿**：每阶段只新增本阶段的文件，禁止把后续阶段的表提前塞进 `001_init.sql`，也禁止修改已执行过的迁移。
@@ -236,7 +236,7 @@ codex exec -C "E:/vibecoding/workbase" -s workspace-write --skip-git-repo-check 
 前提：P0/P1 已通过。只做邮件域。
 
 1. 账户管理
-- 新增 migrations/002_mail.sql（mail_accounts、mails 两表，逐字用 DESIGN 第 5 节 002 段）
+- 新增 migrations/005_mail.sql（mail_accounts、mails 两表，逐字用 DESIGN 第 5 节 002 段）
 - services/secret.ts：safeStorage 加密 IMAP 密码；不可用时抛 SECRET_UNAVAILABLE，禁止明文落库
 - 账户表单提供 QQ邮箱/163/Gmail/Outlook/自定义 模板一键填充（host/port/secure 预填，
   中文提示「QQ/163 需使用授权码而非登录密码」）
@@ -271,80 +271,13 @@ codex exec -C "E:/vibecoding/workbase" -s workspace-write --skip-git-repo-check 
 
 ---
 
+## QQ 支付宝账单接入（独立交付）
+
+按 DESIGN 的「QQ 邮箱支付宝账单接入」完成端到端链路。005 邮箱配置和 006 账单持久化同时交付。后续通用邮件阶段复用 005 的表。本阶段按 DESIGN 的新导入契约验收。验收覆盖样例 CSV 筛选、去重、重启留存、月度与分类图表，以及正确和错误 ZIP 密码。通用邮件功能留在独立邮件阶段。
+
 ## P3 — 支付宝账单：一键从邮箱获取
 
-```markdown
-前提：P2 已通过（IMAP 服务可复用）。只做账单域。
-
-1. 数据与解析
-- 新增 migrations/003_bills.sql（bill_imports、bill_txns，逐字用 DESIGN 第 5 节 003 段，
-  含两个唯一索引与两个普通索引）
-- 依赖新增：adm-zip、iconv-lite、csv-parse（只这三个，不要引入其它解析库）
-- src/main/services/bills/ 下拆四个文件：
-  encoding.ts   编码探测：UTF-8 解码出现 \uFFFD 则用 iconv-lite 按 gb18030 重解，剥离 BOM，返回 {text, encoding}
-  locate.ts     表头定位：逐行扫描，取第一行同时包含「交易时间」与「金额」者为表头；
-                表头前的导出信息全部丢弃；遇到含「导出时间」的行结束
-  parse.ts      列映射与归一化：按表头名匹配（不依赖列序），必需列缺失则抛 BILL_PARSE_FAILED；
-                金额去 ¥/￥/元/千分位后转分；收支映射 expense/income/neutral；
-                时间按本地时区转毫秒；生成 fingerprint；跳过分隔线/空行/字段不足 3 列/尾行
-  import.ts     入库：单事务内建 bill_imports 记录，逐行 INSERT OR IGNORE 写 bill_txns，
-                统计 total/new/dup/skipped 后回写批次；返回摘要对象
-- 解压安全：拒绝含 `..`、绝对路径、盘符的条目；解压总量 > 50MB、单文件 > 20MB、条目 > 200 时中止；
-  加密 ZIP 抛 BILL_ENCRYPTED，提示「请手动解压后导入 CSV」
-
-2. 一键获取（主路径）
-- ipc: bills:fetchFromMail({accountId, sinceDays})：
-  imapflow 连接后 search({since}) → 拉 envelope → 过滤（发件地址含 alipay 或主题含
-  「账单」「交易明细」「支付宝」）→ fetch bodyStructure 找 .zip/.csv 附件 →
-  download 到 temp/imports/<时间戳>/ → 解压 → 按编码/表头解析 → 入库
-- 逐封邮件处理，全部邮件处理完再返回；任一附件解析失败不中断其余邮件，汇总到 failures 数组
-- 全程 bills:progress 上报 {phase,done,total}，phase 为中文（「检索邮件」「下载附件」「解析」「写入」）
-- 一封都没找到 → BILL_NOT_FOUND，提示「未在最近 N 天邮件中找到支付宝账单附件，可用手动导入」
-- 同一文件重复导入：新增 0、重复 N，提示「该账单此前已导入」
-
-3. 手动导入（兜底）
-- ipc: bills:importFile()：dialog 选 .zip/.csv，走同一解析器；用户取消返回 {cancelled:true}
-
-4. 界面（features/bills/）
-- 顶部：区间选择（本月/近 3 月/近 12 月/自定义）+ 「一键获取」主按钮（带账户下拉）+
-  「导入文件」次按钮 + 上次获取时间
-- 四张指标卡：本期支出 / 本期收入 / 结余 / 笔数（数字等宽字体，收入 --success）
-- 图表：月度收支柱线组合图、分类占比环形图（中心显示支出总额）、分类支出 Top10 横向条形
-- 明细表：日期/分类/对方/说明/金额/支付方式；搜索、按收支与分类筛选、按金额与时间排序、
-  分页 50 条、点击行开详情抽屉
-- 导入结果以 toast + 结果条呈现：文件名、区间、总/新增/重复/跳过、编码，附「撤销本次导入」
-  （二次确认后删批次，级联删明细）
-- 空态与首启引导：严格按 DESIGN 第 8 节账单的四态实现，用 EmptyState 组件，不要写空表格或空图表。
-  1) 无邮箱账户 → "先连接一个邮箱"引导，主按钮跳设置页并聚焦邮箱输入，次按钮"手动导入文件"可用，
-     "一键获取"降为次要样式且点击只打开引导、不抛错；
-  2) 有账户但无账单 → "获取第一份账单"引导，预选第一个启用账户，说明将搜索最近 90 天支付宝邮件；
-  3) 有数据但本次没搜到 → 保留图表，内联提示 + 手动导入入口，不弹模态、不清空；
-  4) 认证失败 → 提示条 + "去设置修正" + 折叠的服务器原文。
-  处于 1/2 态时侧栏账单图标不得出现红点或错误标记。
-
-5. 首页与设置联动
-- Dashboard 账单卡片：本月支出/收入/结余 + 最近 3 笔，摘要文案如「本月支出 ¥2,340」
-- 设置页新增「账单获取偏好」：回溯天数（默认 90），写 settings 键 bills.autoFetchDays
-
-6. 自测（必须做，不依赖真实邮箱）
-- 用 node 或 python 在 temp/ 下构造测试文件：
-  a) GBK 编码、带 5 行导出信息前置、含「¥1,234.00」与「不计收支」行、末尾有导出时间行的 csv
-  b) 同内容 zip 包
-  c) 一个含 ../evil.csv 条目的恶意 zip
-  d) 一个普通表格 csv（无支付宝表头）
-- 验证：a/b 解析出正确条数与金额（金额以分为单位核对）；重复导入新增 0；c 被拒绝；
-  d 抛 BILL_PARSE_FAILED 且不写库
-- 首启引导验证（用临时库或直接 SQL 操作 mail_accounts 表，测完恢复）：
-  e) 清空 mail_accounts → 进入账单页必须出现"先连接一个邮箱"引导，截图；点"一键获取"仍进引导、无报错
-  f) 有账户但清空 bill_imports → 出现"获取第一份账单"引导且预选账户，截图
-  g) 有数据时手动制造一次 BILL_NOT_FOUND（如把账户 mailbox 指向不存在文件夹）→ 图表仍在、只出内联提示
-- 测试文件与脚本放 temp/，不要提交到 src/
-
-真实账户验证由审批方提供邮箱后执行，本阶段报告里写明「待真实邮箱验证」。
-截图 temp/p3-bills.png、temp/p3-bills-empty.png、temp/p3-bills-first-run.png。
-```
-
-**P3 DoD**：自测四类文件行为正确；解析条数/金额/去重/编码全部对得上；四张图有数据；撤销导入干净；首页卡片摘要真实；三种引导态（无账户/无账单/未搜到）文案与按钮正确且无报错。
+本阶段按上文「QQ 支付宝账单接入」执行。验收以 DESIGN 的 QQ 邮箱账单流程为准。真实邮箱验收由用户在工作台填写授权码和当次 ZIP 密码后执行。
 
 ---
 
@@ -354,7 +287,7 @@ codex exec -C "E:/vibecoding/workbase" -s workspace-write --skip-git-repo-check 
 前提：P3 已通过。只做 AI 与数据源。
 
 1. AI
-- migrations/004_ai.sql：ai_threads / ai_messages
+- migrations/008_ai.sql：ai_threads / ai_messages
 - services/ai.ts：OpenAI 兼容 /chat/completions 流式（SSE），主进程 fetch，逐块解析 data:，
   webContents.send('ai:delta')，结束发 ai:done；支持 abort
 - 配置：baseURL / apiKey（safeStorage 加密）/ model / temperature / maxTokens；
@@ -369,7 +302,7 @@ codex exec -C "E:/vibecoding/workbase" -s workspace-write --skip-git-repo-check 
 - 未配置时点击 AI 入口显示配置引导，不发请求
 
 2. 数据源
-- migrations/005_sources.sql：sources / data_points
+- migrations/009_sources.sql：sources / data_points
 - kind=rss：解析 RSS/Atom，按 item 时间与数值字段（无则计数 +1）写入 data_points
 - kind=json：config 里 itemsPath（点路径）、tsField、valueField、labelField
 - 抓取超时 15s、UA 固定、失败记录 last_error 不做重试轰炸；手动「立即抓取」+ 每 60 分钟
@@ -427,7 +360,7 @@ codex exec -C "E:/vibecoding/workbase" -s workspace-write --skip-git-repo-check 
 ## 2. 已知陷阱（提示词未覆盖时由我口头补充给 codex）
 
 1. **better-sqlite3 ABI**：`pnpm dev` 报 `NODE_MODULE_VERSION mismatch` → `npx electron-rebuild -f -w better-sqlite3`，不要改用 sql.js 或 JSON 存库。
-2. **imapflow / adm-zip 打包**：必须列在 electron.vite 的 external，且 `electron-builder.yml` 的 `asarUnpack` 加上 `node_modules/imapflow/**`、`node_modules/adm-zip/**`，否则安装后运行时找不到模块。
+2. **imapflow / zip.js 打包**：必须列在 electron.vite 的 external，且 `electron-builder.yml` 的 `asarUnpack` 加上 `node_modules/imapflow/**`、`node_modules/adm-zip/**`，否则安装后运行时找不到模块。
 3. **Tailwind 4**：用 `@tailwindcss/vite` 插件 + `@import "tailwindcss";`，不要装 postcss 或 tailwind.config.js 老方案。
 4. **CDP 截图**：必须 `Emulation.setDeviceMetricsOverride`，否则默认 800x600；截面板展开态要先 dispatch 点击或直接改 store 初始值。
 5. **IMAP 中文主题**：部分服务器返回 encoded-word，mailparser 会解码，入库前确保 UTF-8 而非 latin1。

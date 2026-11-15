@@ -1,0 +1,142 @@
+.daily-briefs-source {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin-bottom: 12px;
+  color: var(--text-3);
+  font-size: 12px;
+}
+
+.daily-briefs-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.daily-brief-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 12px 60px 12px 18px;
+  border-radius: var(--r-lg);
+  cursor: pointer;
+}
+
+.daily-brief-summary:hover {
+  background: var(--surface-2);
+}
+
+.daily-brief-summary:focus-visible {
+  outline-offset: -2px;
+}
+
+.daily-brief-summary > svg {
+  flex: none;
+  color: var(--text-3);
+}
+
+.daily-brief-edition[open] > .daily-brief-summary > svg {
+  transform: rotate(90deg);
+}
+
+.daily-brief-summary-labels {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.daily-brief-issue {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.daily-brief-synced {
+  color: var(--text-3);
+  font-size: 12px;
+}
+
+.daily-brief-edition > .card-body {
+  border-top: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+
+.daily-brief-delete {
+  position: absolute;
+  top: 11px;
+  right: 18px;
+}
+
+@media (hover: hover) {
+  .daily-brief-delete { opacity: 0; }
+  .daily-brief:hover .daily-brief-delete,
+  .daily-brief:focus-within .daily-brief-delete { opacity: 1; }
+}
+
+.daily-brief h2 {
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.daily-brief p {
+  user-select: text;
+  margin-top: 4px;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.daily-brief-stories {
+  margin-top: 4px;
+  padding: 0;
+  list-style: none;
+}
+
+.daily-brief-stories li {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.daily-brief h3 {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.daily-brief-stories a {
+  color: var(--accent);
+}
+
+.daily-brief-stories a:hover,
+.daily-brief-stories a:focus-visible {
+  text-decoration: underline;
+}
+
+.daily-brief-stories a svg {
+  display: inline-block;
+  vertical-align: -2px;
+}
+
+.daily-brief-original {
+  margin-top: 12px;
+  color: var(--text-3);
+  font-size: 12px;
+}
+
+.daily-brief-original summary {
+  width: fit-content;
+  cursor: pointer;
+}
+
+.daily-brief-original > div {
+  margin-top: 8px;
+}

@@ -1,0 +1,13 @@
+:root { color-scheme: light dark; font: 13px/1.45 system-ui, sans-serif; }
+body { width: 320px; margin: 0; padding: 16px; box-sizing: border-box; color: CanvasText; background: Canvas; }
+h1, h2, p, bdi { margin: 0; overflow-wrap: anywhere; }
+h1 { font-size: 16px; }
+h2 { font-size: 13px; }
+p { color: color-mix(in srgb, CanvasText 76%, Canvas); }
+#notice { margin-top: 8px; }
+main, section { display: grid; gap: 8px; }
+section { padding-top: 12px; border-top: 1px solid color-mix(in srgb, CanvasText 18%, Canvas); }
+main { margin-top: 12px; }
+button { font: inherit; cursor: pointer; text-align: start; overflow-wrap: anywhere; padding: 6px 9px; border: 1px solid ButtonBorder; border-radius: 6px; color: ButtonText; background: ButtonFace; }
+button.primary { color: HighlightText; background: Highlight; border-color: Highlight; }
+button:disabled { cursor: wait; opacity: .6; }

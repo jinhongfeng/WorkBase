@@ -8,6 +8,9 @@ export function registerSettingsIPC(): void {
   ipcMain.handle(channels.set, (_event, ...args: unknown[]) => {
     const [key, value] = validate(z.tuple([z.string().min(1).max(200), z.string().max(1000000)]), args)
     if (key === 'ui.pinned_modules') validate(z.array(z.string().min(1)), JSON.parse(value))
+    if (key === 'ui.dashboard_cards') validate(z.array(z.string().min(1).max(200)).max(1000), JSON.parse(value))
+    if (key === 'ui.dashboard_card_sizes') validate(z.record(z.string().min(1).max(200), z.enum(['m', 'l'])), JSON.parse(value))
+    if (key === 'ui.immersive_scenes') validate(z.object({ items: z.array(z.string().min(1).max(40)).max(20) }), JSON.parse(value))
     setSetting(key, value)
   })
   ipcMain.handle(channels.setPinnedModules, (_event, ...args: unknown[]) => {

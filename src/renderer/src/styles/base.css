@@ -1,0 +1,70 @@
+*, *::before, *::after { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  overflow: hidden;
+  user-select: none;
+  font: 14px/1.68 var(--font-ui);
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-variant-numeric: tabular-nums;
+}
+button, input, textarea, select { font: inherit; color: inherit; }
+/* 原生复选框、单选框、滑块跟随主题色，避免默认蓝与主题冲突（各页面不再单独写 accent-color）。 */
+input[type="checkbox"], input[type="radio"], input[type="range"] { accent-color: var(--accent); }
+input, textarea, [contenteditable]:not([contenteditable="false"]), .prose { user-select: text; }
+button { cursor: pointer; border: 0; background: none; padding: 0; }
+button:disabled { cursor: default; opacity: .5; }
+button, summary, [role="button"] { user-select: none; }
+h1, h2, h3, h4, p, figure, blockquote { margin: 0; }
+ul, ol { margin: 0; padding: 0; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+svg { flex-shrink: 0; }
+::selection { background: var(--accent-soft); color: var(--text); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+input:focus, textarea:focus, select:focus { outline: none; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border: 3px solid transparent; border-radius: 999px; background-clip: content-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-3); border: 3px solid transparent; background-clip: content-box; }
+
+/* ---------- 排版 ---------- */
+/* 阶梯：标注 11 / 辅助 12（.small 12.5）/ 控件 13 / 正文 14 / 区块 17 / 页题 26 / 笔记 hero 28
+   —— 与 DESIGN.md 第 7 节字号阶梯同步；模块内统计大数字等主视觉 16–30px 不占阶梯。 */
+h1, .h1 { font-size: 26px; line-height: 1.3; font-weight: 700; letter-spacing: -.022em; }
+h2, .h2 { font-size: 17px; line-height: 1.4; font-weight: 650; letter-spacing: -.012em; }
+h3, .h3 { font-size: 14px; line-height: 1.5; font-weight: 600; }
+.display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -.015em;
+}
+.num { font-family: var(--font-display); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.mono { font-family: var(--font-mono); font-size: 11.5px; }
+.muted { color: var(--text-2); }
+.dim { color: var(--text-3); }
+.small { font-size: 12.5px; }
+.tiny { font-size: 11px; }
+.serif { font-family: var(--font-display); }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* ---------- 动效 ---------- */
+@keyframes drift-a { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(48px, 36px, 0) scale(1.08); } }
+@keyframes drift-b { from { transform: translate3d(0, 0, 0) scale(1.05); } to { transform: translate3d(-54px, 28px, 0) scale(.96); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pulse-soft { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+@keyframes shimmer { from { background-position: -220% 0; } to { background-position: 220% 0; } }
+@keyframes sink { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(6px); } }
+.rise { animation: rise .16s ease-out both; }
+.fade { animation: fade .16s ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

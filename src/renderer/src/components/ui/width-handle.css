@@ -1,0 +1,26 @@
+/* 内容区边缘宽度手柄：占位与高度由使用方按布局写入（style / 页面 css）。 */
+.width-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 6;
+  width: 20px;
+  color: var(--text-2);
+  cursor: ew-resize;
+  touch-action: none;
+  user-select: none;
+}
+.width-handle::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 8px;
+  width: 4px;
+  height: 28px;
+  transform: translateY(-50%);
+  border-inline: 1px solid currentColor;
+  opacity: .7;
+}
+.width-handle:is(:hover, :active, :focus-visible) { color: var(--accent); }
+.width-handle:focus-visible { outline: none; }
+.width-handle:focus-visible::before { outline: 2px solid var(--accent); outline-offset: 3px; }

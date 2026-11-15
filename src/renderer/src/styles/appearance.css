@@ -1,0 +1,60 @@
+/* 拟态 / 苹果两种界面风格的结构性覆盖。
+   颜色、阴影与圆角取值都在 tokens.css 的风格块里，本文件不重复定义颜色；
+   这里只放需要改「盒子结构」的规则：拟态的凸起 / 内凹，苹果的毛玻璃与实底控件。
+   新增覆盖前先确认 token 层已给出对应取值，避免散落硬编码色值。 */
+
+/* ---------- 拟态 ---------- */
+/* 输入、分段容器与快捷键提示内凹（pressed）。焦点环叠加在内凹阴影之上。 */
+html[data-workspace-style="neumorphism"] .input {
+  border-color: transparent;
+  box-shadow: var(--neu-inset);
+}
+html[data-workspace-style="neumorphism"] .input:hover { border-color: transparent; }
+html[data-workspace-style="neumorphism"] .input:focus {
+  border-color: transparent;
+  box-shadow: var(--neu-inset), 0 0 0 2px var(--focus-ring);
+}
+html[data-workspace-style="neumorphism"] :is(.segmented, .kbd) {
+  border-color: transparent;
+  box-shadow: var(--neu-inset);
+}
+/* 同色表面上的控件浮起，主操作与选中入口按下时内凹。 */
+html[data-workspace-style="neumorphism"] :is(.button.primary, .button.secondary, .button.danger, .nav-button.selected) {
+  border-color: transparent;
+  box-shadow: var(--shadow-1);
+}
+html[data-workspace-style="neumorphism"] .button.secondary:hover:not(:disabled),
+html[data-workspace-style="neumorphism"] .button.danger:hover { box-shadow: var(--shadow-2); }
+html[data-workspace-style="neumorphism"] :is(.button.primary, .nav-button.selected):active:not(:disabled) {
+  box-shadow: var(--neu-inset);
+}
+/* 拟态按压以内凹阴影表达，不叠加全局按钮的位移缩放。 */
+html[data-workspace-style="neumorphism"] .button:active:not(:disabled) { transform: none; }
+/* 自媒体写作的文档化标题与导语是无框透明字段（article-writing.css），
+   拟态下可编辑提示改用内凹语言表达：悬停浮现输入槽、聚焦保持内凹 + ring，
+   不保留常驻内凹，避免一个悬浮的阴影框。 */
+html[data-workspace-style="neumorphism"] .article-writing-editor :is(.article-writing-title, .article-writing-lead) {
+  box-shadow: none;
+}
+html[data-workspace-style="neumorphism"] .article-writing-editor :is(.article-writing-title, .article-writing-lead):hover:not(:disabled):not(:focus) {
+  background: transparent;
+  box-shadow: var(--neu-inset);
+}
+html[data-workspace-style="neumorphism"] .article-writing-editor :is(.article-writing-title, .article-writing-lead):focus {
+  background: transparent;
+  box-shadow: var(--neu-inset), 0 0 0 2px var(--focus-ring);
+}
+
+/* ---------- 苹果 ---------- */
+/* 主要表面毛玻璃化：卡片、弹层、浮层、列表面板与设置外壳叠加背景模糊。 */
+html[data-workspace-style="apple"] :is(.card, .dialog, .more-panel, .toast, .action-popover, .tooltip, .list-panel, .preferences-shell) {
+  backdrop-filter: blur(24px) saturate(1.7);
+}
+html[data-workspace-style="apple"] .preferences-shell > .page-head {
+  backdrop-filter: blur(24px) saturate(1.7);
+}
+/* 输入与描边按钮需要完整底色：半透明表面叠半透明会让文字可读性不可控，
+   改用风格块里的 --surface-solid。 */
+html[data-workspace-style="apple"] :is(.input, .button.secondary, .button.danger) {
+  background: var(--surface-solid);
+}

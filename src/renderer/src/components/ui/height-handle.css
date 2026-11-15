@@ -1,0 +1,26 @@
+/* 边缘高度手柄：占位与宽度由使用方按布局写入（style / 页面 css）。 */
+.height-handle {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 6;
+  height: 14px;
+  color: var(--text-2);
+  cursor: ns-resize;
+  touch-action: none;
+  user-select: none;
+}
+.height-handle::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  width: 28px;
+  height: 4px;
+  transform: translateX(-50%);
+  border-block: 1px solid currentColor;
+  opacity: .7;
+}
+.height-handle:is(:hover, :active, :focus-visible) { color: var(--accent); }
+.height-handle:focus-visible { outline: none; }
+.height-handle:focus-visible::before { outline: 2px solid var(--accent); outline-offset: 3px; }

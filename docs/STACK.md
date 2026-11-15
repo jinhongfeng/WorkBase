@@ -8,6 +8,7 @@
 | react | 19.3.1 |
 | react-dom | 19.3.1 |
 | better-sqlite3 | 13.0.3 |
+| htmlparser2 | 12.0.0 |
 | electron-vite | 6.0.0 |
 | electron-builder | 26.18.0 |
 | vite | 8.3.5 |

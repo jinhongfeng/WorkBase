@@ -1,0 +1,179 @@
+/* ==================== Skill 库 ==================== */
+.skills-app {
+  display: grid;
+  height: calc(100dvh - var(--titlebar));
+  overflow: hidden;
+}
+
+.skills-side {
+  --list-sidebar-toggle-top: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid var(--border);
+  background: var(--workspace-panel, var(--surface));
+}
+
+.skills-side-head { padding: 20px 12px 12px; display: grid; gap: 8px; border-bottom: 1px solid var(--border); }
+.skills-side-head .segmented { width: 100%; }
+/* 页头已带自身留白，这里只补 grid gap 之外的最小间距，避免与搜索框之间空出一大块 */
+.skills-side-head .page-head--panel { margin-bottom: 2px; min-height: 29px; padding-inline-end: 32px; flex-wrap: wrap; }
+.skills-side-head .page-head-copy { flex-shrink: 0; white-space: nowrap; }
+.skills-side-head .segmented button { flex: 1; justify-content: center; }
+.skills-actions { display: flex; gap: 8px; margin-left: auto; }
+.skills-actions .button { padding-inline: 8px; gap: 4px; }
+.skills-list {
+  flex: 1; min-height: 0; overflow: auto;
+  padding: 0 8px 16px; display: grid; gap: 4px; align-content: start;
+}
+.skills-list:has(> .skills-empty-hint:only-child) { grid-template-rows: minmax(min-content, 1fr); padding-block: 0; }
+.skills-list > .skills-empty-hint { align-self: safe center; }
+.skills-empty-hint { padding: 16px 8px; font-size: 12px; color: var(--text-2); line-height: 1.65; text-align: center; }
+
+.skill-card {
+  display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 8px;
+  align-items: center;
+  padding: 8px; border-radius: var(--r-sm);
+  text-align: left; width: 100%;
+  transition: background .14s ease;
+}
+.skill-card:hover { background: var(--surface-2); }
+.skill-card[aria-current="true"] { background: var(--accent-soft); }
+.skill-card-body { min-width: 0; display: grid; gap: 2px; align-content: start; }
+.skill-card-top { display: flex; align-items: center; gap: 5px; min-width: 0; }
+.skill-card h3 {
+  font-size: 13px; font-weight: 600; color: var(--text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.skill-pin { color: var(--accent); font-size: 12px; line-height: 1; flex-shrink: 0; }
+.skill-card p {
+  font-size: 12px; color: var(--text-2); line-height: 1.5;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.skill-card-foot {
+  display: flex; align-items: center; gap: 6px; margin-top: 2px;
+  font-size: 12px; color: var(--text-2);
+  overflow: hidden; white-space: nowrap;
+}
+.skill-card-time { margin-left: auto; flex-shrink: 0; }
+
+.skill-thumb {
+  width: 44px; height: 36px; border-radius: var(--r-xs); overflow: hidden;
+  display: grid; place-items: center; position: relative;
+  background: var(--surface-2); border: 1px solid var(--border);
+}
+.skill-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.skill-thumb.empty span {
+  font-size: 15px; font-weight: 600; color: var(--text-2);
+}
+.skill-thumb.video {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
+}
+
+/* ---------- 详情 ---------- */
+.skills-main { min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--workspace-canvas, var(--surface)); }
+
+.skill-detail { flex: 1; min-height: 0; overflow: auto; position: relative; }
+/* 详情内容宽度手柄：sticky 轨道钉在滚动区顶部，手柄铺满可视高度。 */
+.skill-detail-handles { position: sticky; top: 0; height: 0; z-index: 5; }
+.skill-detail .width-handle { bottom: auto; height: calc(100dvh - var(--titlebar)); }
+.skill-detail-inner { max-width: var(--detail-width, 900px); margin: 0 auto; padding: 24px 32px 48px; }
+.skill-detail-inner:has(> .skill-preview-empty) { min-height: 100%; display: flex; flex-direction: column; }
+.skill-preview-empty { margin-block: auto; padding-block: 16px; text-align: center; }
+
+.skill-banner { margin-bottom: 16px; }
+.skill-banner > video, .skill-cover-zoom > img {
+  display: block; max-width: 100%; max-height: 260px; border-radius: var(--r-sm);
+}
+.skill-cover-zoom { display: block; position: relative; max-width: 100%; border-radius: var(--r-sm); cursor: zoom-in; }
+.skill-cover-zoom > img { object-fit: contain; }
+.skill-cover-zoom > svg {
+  position: absolute; inset: auto 8px 8px auto; padding: 4px;
+  border-radius: var(--r-xs); background: var(--surface); color: var(--text);
+}
+.skill-cover-zoom:hover > svg, .skill-cover-zoom:focus-visible > svg { color: var(--accent); }
+.dialog.skill-cover-preview { width: min(1120px, calc(100vw - 48px)); }
+.skill-cover-preview > img { display: block; width: 100%; height: min(72dvh, calc(100dvh - 190px)); object-fit: contain; }
+.skill-banner-fallback { display: flex; align-items: center; gap: 8px; color: var(--text-2); margin-bottom: 16px; }
+.skill-title-row { display: flex; align-items: flex-start; gap: 12px; }
+.skill-title-row h2 {
+  font-size: 20px; line-height: 1.35; min-width: 0; overflow-wrap: anywhere;
+}
+.skill-head-actions { margin-left: auto; display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.skill-head-actions .button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+.skill-view-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin: 16px 0; border-bottom: 1px solid var(--border); }
+.skill-desc { margin-top: 6px; font-size: 13px; line-height: 1.65; color: var(--text-2); max-width: 720px; }
+.skill-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: 8px; }
+.skill-meta-text { font-size: 12px; color: var(--text-2); }
+
+.skill-tabs { display: flex; gap: 16px; }
+.skill-tabs button {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 4px;
+  border-bottom: 2px solid transparent; color: var(--text-2); font-size: 13px;
+}
+.skill-tabs button:hover { color: var(--text); }
+.skill-tabs button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.skill-dirty-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); display: inline-block; }
+
+/* ---------- 编辑 ---------- */
+.skill-form { display: grid; gap: 14px; }
+.skill-form-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 12px; }
+.skill-source-area {
+  min-height: 380px; font-family: var(--font-mono); font-size: 13px; line-height: 1.85;
+  white-space: pre; overflow-wrap: normal; overflow-x: auto;
+}
+.skill-form-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; position: sticky; bottom: 0; z-index: 1; background: var(--surface); border-top: 1px solid var(--border); padding: 12px 0 2px; margin-top: 6px; }
+
+/* ---------- 文件 ---------- */
+.skill-files { border-radius: 12px; overflow: hidden; background: var(--surface-2); }
+.skill-file-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 8px 13px; border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono); font-size: 12px; color: var(--text);
+}
+.skill-file-row:last-child { border-bottom: 0; }
+.skill-file-row span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.skill-file-row span:last-child { color: var(--text-3); font-size: 12px; flex-shrink: 0; }
+
+/* ---------- 封面弹窗 ---------- */
+.cover-dialog { display: grid; gap: 12px; }
+.cover-pick {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+  padding: 14px 15px; border-radius: 12px; border: 1px dashed var(--border-strong);
+  background: var(--surface-2); color: var(--text);
+  transition: border-color .15s ease, background .15s ease;
+}
+.cover-pick:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
+.cover-pick:disabled { opacity: .6; cursor: default; }
+.cover-pick svg { color: var(--accent); flex-shrink: 0; }
+.cover-pick span { display: grid; gap: 3px; min-width: 0; }
+.cover-pick b { font-size: 13px; font-weight: 600; }
+.cover-pick small { font-size: 12px; color: var(--text-3); }
+.cover-divider { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text-3); }
+.cover-divider::before, .cover-divider::after { content: ''; height: 1px; background: var(--border); flex: 1; }
+
+/* ---------- 导入弹窗 ---------- */
+.import-dialog { display: grid; gap: 12px; }
+.import-dialog .dropzone { width: 100%; padding: 16px; }
+.import-dialog .dropzone:disabled { opacity: .55; cursor: default; }
+.skill-import-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+
+@media (max-width: 1000px) {
+  .skill-detail-inner { padding-inline: 20px; }
+  .skill-form-grid { grid-template-columns: 1fr; }
+}
+
+/* ---------- 拖拽导入 ---------- */
+.skills-drop {
+  position: fixed;
+  inset: var(--titlebar) 0 0 var(--sidebar);
+  z-index: 40;
+  display: grid; place-items: center; align-content: center; gap: 10px;
+  color: var(--accent);
+  font-size: 13px; letter-spacing: .01em;
+  background: color-mix(in srgb, var(--accent-soft) 82%, transparent);
+  border: 2px dashed color-mix(in srgb, var(--accent) 45%, transparent);
+  pointer-events: none;
+}

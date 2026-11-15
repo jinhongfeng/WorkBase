@@ -1,0 +1,172 @@
+/* 习惯：页头/统计/卡片统一组件层，本文件只保留打卡表与新建控件。 */
+.habits-page .stat-grid { margin-bottom: 16px; }
+.habits-page .stat-card .meter { margin-top: 8px; }
+
+.habits-page .habit-compose-card { margin-bottom: 14px; }
+.habits-page .habit-compose {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.habits-page .habit-compose .field { gap: 6px; min-width: 0; }
+.habits-page .habit-name-field { flex: 1 1 260px; }
+.habits-page .habit-icon-field { min-width: 0; margin: 0; padding: 0; border: 0; }
+.habits-page .habit-icon-field legend { margin-bottom: 6px; padding: 0; color: var(--text-2); font: 500 12px/16px var(--font-ui); }
+.habits-page .habit-icon-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+.habits-page .habit-icon-option {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  font-size: 16px;
+}
+.habits-page .habit-icon-option input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.habits-page .habit-icon-option:hover { background: var(--surface-2); }
+.habits-page .habit-icon-option:has(input:checked) { background: var(--accent-soft); border-color: var(--accent); }
+.habits-page .habit-icon-option:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (forced-colors: active) {
+  .habits-page .habit-icon-option:has(input:checked) { border-color: Highlight; }
+}
+.habits-page .habit-add { flex: none; height: 34px; }
+.habits-page .habit-kbd { margin-top: 10px; }
+
+.habits-page .habits-log { container-type: inline-size; }
+.habits-page .habit-date-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 478px 108px;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0 9px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface);
+  color: var(--text-3);
+  font-size: 11px;
+  border-bottom: 1px solid var(--border);
+}
+.habits-page .habit-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 478px 108px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+.habits-page .habit-row + .habit-row { border-top: 1px solid var(--border); }
+.habits-page .habit-name { font-size: 14px; overflow-wrap: anywhere; display: flex; align-items: center; gap: 8px; }
+.habits-page .habit-name strong { font-weight: 600; }
+.habits-page .habit-emoji { flex-shrink: 0; border-radius: var(--r-xs); }
+.habits-page .habit-grid { display: grid; grid-template-columns: repeat(13, 30px) 36px; gap: 4px; margin: 0; text-align: center; }
+/* 今天整列淡底 + 表头强调色，单元格统一圆角与描边。 */
+.habits-page .habit-date-heading .today {
+  color: var(--accent);
+  font-weight: 650;
+  background: var(--accent-soft);
+  border-radius: var(--r-xs);
+  padding-block: 2px;
+}
+.habits-page .habit-cell {
+  position: relative;
+  width: 100%;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  font: 11px/1 var(--font-ui);
+  font-variant-numeric: tabular-nums;
+  color: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--r-xs);
+  background: var(--surface);
+  transition: background var(--dur-1) var(--ease-ui), border-color var(--dur-1) var(--ease-ui), color var(--dur-1) var(--ease-ui);
+}
+/* hover 只加深边框，不挪动底色，避免壁纸态出现色带。 */
+.habits-page .habit-cell:hover { border-color: var(--border-strong); background: var(--surface-2); }
+.habits-page .habit-cell.today { background: color-mix(in srgb, var(--accent) 8%, var(--surface)); border-color: var(--accent); }
+.habits-page .habit-today-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--habit, var(--accent));
+  opacity: .55;
+}
+.habits-page .habit-cell.on { background: var(--habit, var(--accent)); color: var(--accent-ink); border-color: transparent; }
+.habits-page .habit-cell.on:hover { border-color: color-mix(in srgb, var(--habit, var(--accent)) 70%, var(--text)); }
+.habits-page .habit-cell.today.on { background: var(--habit, var(--accent)); color: var(--accent-ink); }
+/* 计数型打卡：未达目标但已有次数时显示 x/target 中的次数读数。 */
+.habits-page .habit-cell[data-partial="true"] {
+  color: var(--habit, var(--accent));
+  border-color: color-mix(in srgb, var(--habit, var(--accent)) 45%, var(--border-strong));
+  background: color-mix(in srgb, var(--habit, var(--accent)) 12%, var(--surface));
+}
+.habits-page .habit-row { --habit: var(--accent); }
+.habits-page .habit-row[data-habit-color="accent-2"] { --habit: var(--accent-2); }
+.habits-page .habit-row[data-habit-color="accent-3"] { --habit: var(--accent-3); }
+.habits-page .habit-row[data-habit-color="success"] { --habit: var(--success); }
+.habits-page .habit-row[data-habit-color="danger"] { --habit: var(--danger); }
+.habits-page .habit-cell:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.habits-page .habit-check-burst { position: absolute; top: 8px; right: 8px; pointer-events: none; }
+.habits-page .habit-check-burst i {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--accent-ink);
+  opacity: 0;
+  animation: habit-check-dot var(--dur-2) ease-out both;
+}
+.habits-page .habit-check-burst i:nth-child(1) { --check-dx: -4px; --check-dy: -4px; }
+.habits-page .habit-check-burst i:nth-child(2) { --check-dx: 2px; --check-dy: -6px; }
+.habits-page .habit-check-burst i:nth-child(3) { --check-dx: 5px; --check-dy: -1px; }
+.habits-page .habit-check-burst i:nth-child(4) { --check-dx: 4px; --check-dy: 4px; }
+@keyframes habit-check-dot {
+  from { opacity: .85; transform: scale(.6); }
+  to { opacity: 0; transform: translate(var(--check-dx), var(--check-dy)); }
+}
+.habits-page .habit-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.habits-page .habit-streak { white-space: nowrap; color: var(--text-2); }
+.habits-page .habit-actions .icon-action { opacity: 0; transition: opacity var(--dur-1) var(--ease-ui); }
+.habits-page .habit-row:hover .habit-actions .icon-action,
+.habits-page .habit-actions .icon-action:focus-visible { opacity: 1; }
+@media (hover: none) { .habits-page .habit-actions .icon-action { opacity: 1; } }
+
+@container (max-width: 780px) {
+  .habits-page .habit-date-heading { display: none; }
+  .habits-page .habit-row { grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; }
+  .habits-page .habit-grid { grid-row: 2; grid-column: 1 / -1; display: flex; flex-wrap: wrap; }
+  .habits-page .habit-cell { width: 30px; }
+  .habits-page .habit-cell.today { width: 36px; }
+  .habits-page .habit-actions { grid-row: 1; grid-column: 2; }
+  .habits-page .habit-actions .icon-action { opacity: 1; }
+}
+
+/* 新建习惯：每日目标次数与颜色选择。 */
+.habits-page .habit-target-field { flex: none; }
+.habits-page .habit-target-field .input { width: 72px; height: 34px; }
+.habits-page .habit-color-field { min-width: 0; margin: 0; padding: 0; border: 0; }
+.habits-page .habit-color-field legend { margin-bottom: 6px; padding: 0; color: var(--text-2); font: 500 12px/16px var(--font-ui); }
+.habits-page .habit-color-row { display: flex; gap: 6px; }
+.habits-page .habit-color-option { position: relative; display: grid; place-items: center; width: 30px; height: 34px; }
+.habits-page .habit-color-option input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.habits-page .habit-color-option span {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  transition: outline-color var(--dur-1) var(--ease-ui), transform var(--dur-1) var(--ease-ui);
+}
+.habits-page .habit-color-option span[data-color="accent-2"] { background: var(--accent-2); }
+.habits-page .habit-color-option span[data-color="accent-3"] { background: var(--accent-3); }
+.habits-page .habit-color-option span[data-color="success"] { background: var(--success); }
+.habits-page .habit-color-option span[data-color="danger"] { background: var(--danger); }
+.habits-page .habit-color-option:hover span { transform: scale(1.15); }
+.habits-page .habit-color-option:has(input:checked) span { outline-color: var(--text-2); }
+.habits-page .habit-color-option:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }

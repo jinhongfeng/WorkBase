@@ -1,0 +1,132 @@
+/* 计时和最近记录共用左列，给右列统计留出完整高度。 */
+.focus-page.page { padding-block: 20px; }
+.focus-page .page-head { margin-bottom: 16px; }
+.focus-page .focus-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, .75fr);
+  grid-template-rows: 1fr auto;
+  grid-template-areas: 'timer stats' 'recent stats';
+  gap: 14px;
+}
+.focus-page .focus-stage {
+  grid-area: timer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: 24px;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+}
+/* 卡片底部与右上角的装饰插画：不参与交互，衬托留白区域。 */
+.focus-page .focus-stage-art { position: absolute; pointer-events: none; }
+.focus-page .focus-stage-art-waves { inset-inline: 0; bottom: -6px; width: 100%; opacity: .8; }
+.focus-page .focus-stage-art-waves svg, .focus-page .focus-stage-art-leaf svg { display: block; width: 100%; height: auto; }
+.focus-page .focus-stage-art-leaf { top: 10px; inset-inline-end: 10px; width: 150px; opacity: .55; }
+/* 计时环由 CircularMeter 渲染，轨道与进度色走组件的 data-tone token。 */
+.focus-page .focus-clock { position: relative; display: grid; place-items: center; }
+.focus-page .focus-clock .circular-meter { width: 212px; height: 212px; }
+.focus-page .focus-clock-readout { display: grid; gap: 8px; text-align: center; }
+.focus-page .focus-time { font: 650 48px/1 var(--font-ui); letter-spacing: -.025em; font-variant-numeric: tabular-nums; }
+.focus-page .focus-label { font-size: 12px; color: var(--text-2); letter-spacing: normal; }
+.focus-page .focus-presets { width: 100%; max-width: 320px; }
+.focus-page .focus-presets button { height: 32px; }
+.focus-page .focus-topic { width: 100%; max-width: 320px; }
+.focus-page .focus-topic::placeholder { color: var(--text-2); }
+.focus-page .focus-actions { display: flex; gap: 8px; }
+.focus-page .focus-actions .button { height: 34px; min-height: 34px; }
+.focus-page .focus-actions .button.primary { min-width: 108px; }
+
+.focus-page .focus-stats-card { grid-area: stats; }
+.focus-page .focus-stats-card .card-body { display: flex; flex-direction: column; gap: 14px; }
+.focus-page .focus-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.focus-page .focus-stats .stat-card { min-height: 0; padding: 0; background: transparent; box-shadow: none; }
+.focus-page .focus-stats .stat-value { flex-wrap: wrap; gap: 0 4px; font-size: 20px; overflow-wrap: anywhere; }
+.focus-page .focus-stats .stat-value small { font-size: 11px; }
+
+.focus-page .focus-summary-heading { color: var(--text-2); font-size: 11.5px; font-weight: 500; }
+.focus-page .focus-streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  color: var(--accent-2);
+  font-size: 12px;
+  font-weight: 500;
+}
+.focus-page .focus-week-heading { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; }
+.focus-page .focus-target { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.focus-page .focus-target-stepper { display: grid; grid-template-columns: 26px 64px 26px; gap: 2px; align-items: center; }
+.focus-page .focus-target-stepper .button { width: 26px; min-width: 26px; height: 26px; padding: 0; }
+.focus-page .focus-target-stepper .input { height: 26px; min-height: 26px; padding-inline: 2px; text-align: center; appearance: textfield; }
+.focus-page .focus-target-stepper .input::-webkit-inner-spin-button { appearance: none; }
+/* 年度专注格子：12 个月 × 5 个周段，列随月份排布。 */
+.focus-page .focus-year { display: grid; gap: 6px; }
+.focus-page .focus-year-grid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  grid-template-rows: repeat(5, 12px);
+  gap: 3px;
+}
+.focus-page .focus-year-grid i { width: 100%; border-radius: 3px; background: var(--surface-3); }
+.focus-page .focus-year-grid i[data-level="1"] { background: color-mix(in srgb, var(--accent) 40%, var(--surface-3)); }
+.focus-page .focus-year-grid i[data-level="2"] { background: color-mix(in srgb, var(--accent) 68%, var(--surface-3)); }
+.focus-page .focus-year-grid i[data-level="3"] { background: var(--accent); }
+.focus-page .focus-year-labels { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 3px; }
+.focus-page .focus-year-labels span { text-align: center; color: var(--text-2); font: 10.5px/1 var(--font-ui); }
+.focus-page .focus-year-hint { min-height: 1.3em; margin: 0; color: var(--text-2); font-size: 11.5px; }
+.focus-page .focus-recent-card { grid-area: recent; }
+.focus-page .focus-recent-card .card-body { padding-block: 6px 12px; }
+.focus-page .focus-recent { display: grid; grid-template-columns: minmax(0, 1fr); margin: 0; padding: 0; list-style: none; }
+.focus-page .focus-recent li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+.focus-page .focus-recent li:last-child { border-bottom: 0; padding-bottom: 0; }
+.focus-page .focus-recent-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+.focus-page .focus-recent-meta { flex-shrink: 0; color: var(--text-2); font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.focus-page .focus-week-empty { display: grid; place-content: safe center; margin: 0; text-align: center; }
+.focus-page :is(.focus-week, .focus-week-empty) { block-size: clamp(88px, 15dvh, 132px); }
+.focus-page .focus-week {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  align-items: end;
+  gap: 6px;
+  margin: 0;
+}
+.focus-page .focus-bar { min-width: 0; display: grid; grid-template-rows: 1fr 14px; gap: 6px; justify-items: center; height: 100%; }
+/* 今天用强调色，其余用中性灰，去掉旧描边与配色噪点。 */
+.focus-page .focus-bar i { width: min(32px, 100%); border-radius: 4px; background: var(--surface-3); transition: height var(--dur-3) var(--ease-ui); }
+.focus-page .focus-bar i.today { background: var(--accent); }
+.focus-page .focus-bar span { color: var(--text-2); font: 11px/1.3 var(--font-ui); }
+
+@media (max-width: 760px) {
+  .focus-page .focus-layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    grid-template-areas: 'timer' 'stats' 'recent';
+  }
+}
+
+@media (max-height: 780px) {
+  .focus-page.page { padding-block: 16px; }
+  .focus-page .focus-layout { gap: 12px; }
+  .focus-page .focus-stage { padding-block: 14px; gap: 10px; }
+  .focus-page .focus-clock .circular-meter { width: 180px; height: 180px; }
+  .focus-page .focus-time { font-size: 42px; }
+  .focus-page .focus-stats-card .card-body { gap: 10px; }
+}

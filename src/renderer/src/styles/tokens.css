@@ -1,20 +1,322 @@
+/* 设计令牌：雾白浅色 / 松墨深色。
+   注意：window.ts 会用正则读取 --surface / --text / --bg 作为原生标题栏配色，
+   因此这三项必须保持 `--name: 值;` 的行内格式。 */
 :root {
-  --bg: #FAFAF9; --surface: #FFFFFF; --surface-2: #F5F5F4;
-  --border: #E7E5E4; --border-strong: #D6D3D1;
-  --text: #1C1917; --text-2: #78716C; --text-3: #A8A29E;
-  --accent: #4F46E5; --accent-soft: #EEF2FF; --danger: #DC2626; --success: #16A34A;
-  --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 18px;
-  --shadow-1: 0 1px 2px rgba(28,25,23,.06); --shadow-2: 0 8px 24px rgba(28,25,23,.08);
-  --font-ui: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei UI", sans-serif;
-  --font-mono: "JetBrains Mono", Consolas, monospace;
-  --overlay: rgba(28,25,23,.18);
+  --bg: #EFF3F0;
+  --bg-2: #E7EDE9;
+  --surface: #FFFFFF;
+  --surface-2: #F6F8F6;
+  --surface-3: #EAF0EC;
+  --glass: rgba(255, 255, 255, .74);
+  /* 浅色边框从 #F0F4F2 提到 #E1E8E3：原值与 --bg 明度差不足 2%，
+     白卡片轮廓几乎不可见（2026-11-09 审视记录的已知短板）。 */
+  --border-base: #E1E8E3;
+  --border-strong-base: #DBE3DE;
+  --border: var(--border-base);
+  --border-strong: var(--border-strong-base);
+  --text: #202923;
+  --text-2: #4F5D54;
+  --text-3: #5D6B63;
+  --accent: #2C5F52;
+  --accent-ink: #F5FBF8;
+  --accent-soft: #E3EFE9;
+  --accent-2: #B87A45;
+  --accent-2-soft: #F7EADB;
+  --accent-3: #5E5A93;
+  --accent-3-soft: #ECEAF7;
+  --danger: #B4442F;
+  --danger-soft: #F8E6E1;
+  --success: #3F7A55;
+  --success-soft: #E6F1E9;
+  --gold: #B88B2E;
+  --r-xs: 6px;
+  --r-sm: 8px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 16px;
+  /* 动效：统一缓动与时长，全部 ≤180ms（DESIGN.md 第 7 节）。 */
+  --ease-ui: cubic-bezier(.2, .7, .3, 1);
+  --dur-1: 120ms;
+  --dur-2: 160ms;
+  /* z-index 分级（全库唯一口径，新浮层按层取值，不发明新档位）：
+     0–9 页内内容堆叠与渐隐遮罩 → 12–40 粘性面板/工具栏/列表覆盖层 → 60 全屏浮层（拖放遮罩、标题栏、悬浮卡片）
+     → 80 toast → 999 启动层（splash.css 唯一例外）。 */
+  --dur-3: 180ms;
+  /* 组件层语义色：仅由主题块给出，页面不得自行定义。 */
+  --warn: var(--accent-2);
+  --warn-soft: var(--accent-2-soft);
+  --focus-ring: color-mix(in srgb, var(--accent) 34%, transparent);
+  /* 主操作与侧栏选中态共用色层。由各外观的表面、强调色和边框色推导。 */
+  --action-base: var(--surface);
+  --action-tint: 12%;
+  --action-fill: color-mix(in srgb, var(--accent) var(--action-tint), var(--action-base));
+  --action-highlight: color-mix(in srgb, var(--action-base) 54%, transparent);
+  --action-ink: color-mix(in srgb, var(--accent), var(--text));
+  --action-border: color-mix(in srgb, var(--accent) 28%, var(--border-strong));
+  --action-hover: color-mix(in srgb, var(--accent) 8%, var(--action-fill));
+  --action-pressed: color-mix(in srgb, var(--accent) 15%, var(--action-fill));
+  --control-track: color-mix(in srgb, var(--text) 5%, var(--action-base));
+  --selection-fill: color-mix(in srgb, var(--action-fill) 74%, var(--action-base));
+  --shadow-1: 0 0 0 1px rgba(255, 255, 255, .45), 0 1px 2px rgba(27, 25, 21, .022);
+  --shadow-2: 0 0 0 1px rgba(255, 255, 255, .4), 0 8px 24px -16px rgba(27, 25, 21, .14);
+  --shadow-3: 0 24px 50px -28px rgba(27, 25, 21, .22);
+  --overlay: rgba(27, 25, 21, .22);
+  --font-ui: "Segoe UI Variable Text", "Segoe UI", "PingFang SC", "Microsoft YaHei UI", system-ui, sans-serif;
+  --font-display: var(--font-ui);
+  --font-mono: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+  --titlebar: 46px;
+  --sidebar: 64px;
+  --wp-scrim-rgb: 10, 12, 11;
+  /* 以下 --wp-chrome-dark / --wp-text* / --wp-hover / --wp-search / --wp-border /
+     --wp-accent* 为「深色壁纸切换深色 chrome」方案的遗留，已停用：
+     壁纸明暗不再改变 chrome 配色（见 docs/DESIGN.md 外观一致性约束）。
+     保留定义仅为不破坏旧引用，新代码不要再使用。 */
+  --wp-chrome-dark: #0B0E0D;
+  --wp-text: #F1EEE6;
+  --wp-text-2: #D6D3D1;
+  --wp-text-3: #A8A29E;
+  --wp-hover: rgba(255, 255, 255, .10);
+  --wp-search: rgba(255, 255, 255, .09);
+  --wp-border: rgba(255, 255, 255, .24);
+  --wp-accent: #8CD3B8;
+  --wp-accent-soft: #17322A;
+  --wp-content-tint: 85%;
+  --wp-content-tint-clear: 45%;
+  --wp-sidebar-tint: 80%;
+  --wp-sidebar-blur: 10px;
+  --wp-sidebar-clear-background: color-mix(in srgb, var(--surface-2) var(--wp-content-tint-clear), transparent);
+  --wp-chrome-tint: 89%;
+  --wp-panel-tint: 28%;
+  --wp-toolbar-tint: 18%;
+  /* 笔记正文装饰色（标题底线/引用边线/列表圆点）：参考报纸排版的砖红色，
+     仅在笔记与沉浸阅读正文内使用，不参与全局绿色主题。 */
+  --note-accent: #A8432E;
+  /* 界面风格选择按钮的识别色，让风格未激活时也能预览。 */
+  --style-chip-standard: light-dark(#2C5F52, #8CD3B8);
+  --style-chip-standard-soft: light-dark(#E3EFE9, #17322A);
+  --style-chip-paper: light-dark(#9C462F, #DFA891);
+  --style-chip-paper-soft: light-dark(#F2E1D2, #473731);
+  --style-chip-neumorphism: light-dark(#465C82, #AEC3EC);
+  --style-chip-neumorphism-soft: light-dark(#D7E1F1, #35455F);
+  --style-chip-neumorphism-shadow: inset 2px 2px 5px light-dark(rgba(157, 172, 197, .55), rgba(10, 14, 24, .7)),
+                                   inset -2px -2px 5px light-dark(rgba(255, 255, 255, .9), rgba(117, 136, 170, .24));
+  --style-chip-apple: light-dark(#0071E3, #0A84FF);
+  --style-chip-apple-soft: light-dark(rgba(0, 113, 227, .1), rgba(10, 132, 255, .22));
+  /* 主题色预设的识别色与取值（html[data-accent] 用），设置页色板与
+     强调色覆盖共用这一组，避免同一色值写两处。
+     --accent-default-swatch 是设置页「风格默认」色板的取值，始终指向
+     当前界面风格自带的强调色，不受 html[data-accent] 覆盖影响。 */
+  --accent-default-swatch: var(--style-chip-standard);
+  --accent-chip-moss: light-dark(#3F7351, #8FCBAA);
+  --accent-chip-teal: light-dark(#2F6D68, #7ED0C4);
+  --accent-chip-sky: light-dark(#33659B, #85B7E8);
+  --accent-chip-indigo: light-dark(#4C5C9E, #9FADEF);
+  --accent-chip-plum: light-dark(#7D5292, #C39BDF);
+  --accent-chip-rust: light-dark(#A34B33, #E29B7E);
+  --accent-chip-amber: light-dark(#8F6623, #DFB566);
+  --accent-chip-rose: light-dark(#A05066, #E39FB1);
   color-scheme: light;
 }
+/* 宽屏在图标下显示中文，窄屏保留 64px 图标轨道。 */
+html[data-sidebar="wide"] { --sidebar: 152px; }
 [data-theme="dark"] {
-  --bg: #0C0A09; --surface: #171614; --surface-2: #1F1D1B;
-  --border: #292524; --border-strong: #57534E;
-  --text: #FAFAF9; --text-2: #A8A29E; --text-3: #A8A29E;
-  --accent: #818CF8; --accent-soft: #242342; --danger: #F87171; --success: #4ADE80;
-  --shadow-1: 0 1px 2px rgba(0,0,0,.24); --shadow-2: 0 8px 24px rgba(0,0,0,.36);
-  --overlay: rgba(0,0,0,.45); color-scheme: dark;
+  --bg: #0B0E0D;
+  --bg-2: #0F1413;
+  --surface: #141A18;
+  --surface-2: #19211E;
+  --surface-3: #202925;
+  --glass: rgba(18, 24, 22, .76);
+  --border-base: #26302C;
+  --border-strong-base: #3A4741;
+  --border: var(--border-base);
+  --border-strong: var(--border-strong-base);
+  --text: #F1EEE6;
+  --text-2: #A5AEA8;
+  --text-3: #929E96;
+  --accent: #8CD3B8;
+  --accent-ink: #0A1411;
+  --accent-soft: #17322A;
+  --accent-2: #DCA475;
+  --accent-2-soft: #2C2118;
+  --accent-3: #A79BE2;
+  --accent-3-soft: #211E33;
+  --danger: #EE8B76;
+  --danger-soft: #2E1B17;
+  --success: #79C79A;
+  --success-soft: #14261C;
+  --gold: #E0C07A;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, .5);
+  --shadow-2: 0 14px 40px -18px rgba(0, 0, 0, .75);
+  --shadow-3: 0 40px 80px -40px rgba(0, 0, 0, .9);
+  --overlay: rgba(4, 7, 6, .62);
+  --wp-content-tint: 86%;
+  --wp-sidebar-tint: 82%;
+  --note-accent: #E0936F;
+  color-scheme: dark;
+}
+
+/* 纸面外观使用暖纸与赭墨色，颜色 token 作用于全部界面；
+   横线、胶带等结构性装饰规则在各自功能样式里按页面类名生效。 */
+html[data-workspace-style="paper"] {
+  --bg: light-dark(#EFE3D3, #23211F);
+  --bg-2: light-dark(#E9D9C7, #292624);
+  --surface: light-dark(#FBF4E7, #302D2A);
+  --surface-2: light-dark(#F3E8D8, #272523);
+  --surface-3: light-dark(#EBDDCB, #3B3733);
+  --glass: color-mix(in srgb, var(--surface) 92%, transparent);
+  --border-base: light-dark(#DCCBB7, #49443E);
+  --border-strong-base: light-dark(#BA9D86, #666059);
+  --text: light-dark(#32251D, #F1EBE2);
+  --text-2: light-dark(#594236, #CDC4B9);
+  --text-3: light-dark(#695147, #B4AA9E);
+  /* 纸面强调色取日期标记的赭红，主按钮以纸色混入少量墨色。 */
+  --accent: var(--style-chip-paper);
+  --accent-soft: var(--style-chip-paper-soft);
+  --accent-default-swatch: var(--style-chip-paper);
+  --accent-ink: light-dark(#FFF8EF, #241C18);
+  --action-tint: 10%;
+  --paper-date: var(--accent);
+  --paper-tape: light-dark(#E8DCB8, #554B3A);
+  --r-lg: 4px;
+  --shadow-1: 0 2px 4px light-dark(#51352926, #00000055);
+  --shadow-2: 0 3px 7px light-dark(#51352938, #00000070);
+  --workspace-titlebar: var(--surface);
+}
+
+/* 拟态外观：雾蓝石面靠双向柔和阴影（右下深 / 左上亮）表达凸起，
+   边框退为同色系浅槽；输入类元素内凹。作用于全部界面。
+   结构性规则（内凹阴影、按钮凸起）在 styles/appearance.css。
+   --neu-inset 是输入 / 分段容器的内凹阴影专用 token。 */
+html[data-workspace-style="neumorphism"] {
+  --bg: var(--surface);
+  --bg-2: var(--surface);
+  --surface: light-dark(#E5EBF4, #252E40);
+  --surface-2: light-dark(#DCE4F0, #1E2636);
+  --surface-3: light-dark(#D1DBEA, #303C52);
+  --glass: color-mix(in srgb, var(--surface) 92%, transparent);
+  --border-base: light-dark(#D3DEED, #303B52);
+  --border-strong-base: light-dark(#B9C8DD, #465776);
+  --text: light-dark(#202B3F, #E8EDF8);
+  --text-2: light-dark(#485970, #C0CBE0);
+  --text-3: light-dark(#52647E, #A5B5D0);
+  --accent: var(--style-chip-neumorphism);
+  --accent-soft: var(--style-chip-neumorphism-soft);
+  --accent-default-swatch: var(--style-chip-neumorphism);
+  --accent-ink: light-dark(#F5F8FF, #182032);
+  --action-tint: 7%;
+  --r-xs: 8px;
+  --r-sm: 10px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+  --shadow-1: 4px 4px 8px light-dark(rgba(157, 172, 197, .48), rgba(10, 14, 24, .6)),
+              -4px -4px 8px light-dark(rgba(255, 255, 255, .9), rgba(117, 136, 170, .2));
+  --shadow-2: 10px 12px 26px light-dark(rgba(149, 165, 193, .5), rgba(9, 13, 22, .65)),
+              -10px -10px 26px light-dark(rgba(255, 255, 255, .95), rgba(117, 136, 170, .24));
+  --shadow-3: 20px 26px 52px light-dark(rgba(137, 155, 186, .55), rgba(7, 10, 19, .7)),
+              -14px -14px 36px light-dark(rgba(255, 255, 255, .95), rgba(117, 136, 170, .28));
+  --neu-inset: var(--style-chip-neumorphism-shadow);
+  /* 凹槽亮侧：标题底线、软分隔条等「暗线 + 亮影」组合的高光分量。 */
+  --neu-highlight: light-dark(rgba(255, 255, 255, .9), rgba(117, 136, 170, .24));
+}
+
+/* 苹果外观：毛玻璃表面（配合 appearance.css 的 backdrop-filter）、
+   发丝分割线、大面积圆角与系统强调色。作用于全部界面。
+   --surface-solid 是输入框 / 次要按钮等需要完整底色的元素专用 token，
+   避免半透明表面在壁纸下影响可读性。 */
+html[data-workspace-style="apple"] {
+  --bg: light-dark(#F5F5F7, #1B1B1D);
+  --bg-2: light-dark(#ECECF0, #232326);
+  --surface: light-dark(rgba(255, 255, 255, .78), rgba(40, 40, 45, .72));
+  --surface-2: light-dark(rgba(255, 255, 255, .58), rgba(54, 54, 60, .6));
+  --surface-3: light-dark(rgba(255, 255, 255, .95), rgba(70, 70, 78, .85));
+  --surface-solid: light-dark(#FFFFFF, #2C2C30);
+  --glass: light-dark(rgba(255, 255, 255, .62), rgba(40, 40, 45, .62));
+  --border-base: light-dark(rgba(0, 0, 0, .08), rgba(255, 255, 255, .09));
+  --border-strong-base: light-dark(rgba(0, 0, 0, .16), rgba(255, 255, 255, .17));
+  --text: light-dark(#1D1D1F, #F5F5F7);
+  --text-2: light-dark(#515154, #A1A1A8);
+  --text-3: light-dark(#6E6E73, #87878D);
+  --accent: light-dark(#0071E3, #0A84FF);
+  --accent-ink: light-dark(#FFFFFF, #0A1411);
+  --accent-soft: light-dark(rgba(0, 113, 227, .1), rgba(10, 132, 255, .22));
+  --accent-default-swatch: var(--style-chip-apple);
+  --action-base: var(--surface-solid);
+  --action-tint: 14%;
+  --accent-2: light-dark(#AD5700, #FF9F0A);
+  --accent-2-soft: light-dark(rgba(255, 149, 0, .15), rgba(255, 159, 10, .18));
+  --accent-3: light-dark(#7D3CB5, #BF5AF2);
+  --accent-3-soft: light-dark(rgba(175, 82, 222, .12), rgba(191, 90, 242, .18));
+  --danger: light-dark(#D70015, #FF453A);
+  --danger-soft: light-dark(rgba(255, 59, 48, .12), rgba(255, 69, 58, .16));
+  --success: light-dark(#248A3D, #30D158);
+  --success-soft: light-dark(rgba(52, 199, 89, .15), rgba(48, 209, 88, .16));
+  --gold: light-dark(#B08A00, #FFD60A);
+  --r-xs: 8px;
+  --r-sm: 10px;
+  --r-md: 13px;
+  --r-lg: 18px;
+  --r-xl: 22px;
+  --overlay: light-dark(rgba(0, 0, 0, .28), rgba(0, 0, 0, .5));
+  --shadow-1: 0 1px 2px light-dark(rgba(0, 0, 0, .06), rgba(0, 0, 0, .45));
+  --shadow-2: 0 2px 6px light-dark(rgba(0, 0, 0, .05), rgba(0, 0, 0, .4)),
+              0 12px 32px light-dark(rgba(0, 0, 0, .1), rgba(0, 0, 0, .55));
+  --shadow-3: 0 24px 64px light-dark(rgba(0, 0, 0, .16), rgba(0, 0, 0, .62));
+  /* 毛玻璃需要壁纸透出更多：降低各层底色不透明度，属于背景层调整，
+     不动边框与阴影取值（外观一致性约束第 1、5 条）。 */
+  --wp-content-tint: 70%;
+  --wp-content-tint-clear: 40%;
+  --wp-sidebar-tint: 60%;
+  --wp-sidebar-blur: 18px;
+  --wp-sidebar-clear-background: var(--surface-2);
+  --wp-panel-tint: 22%;
+  --wp-toolbar-tint: 16%;
+}
+
+/* ---------- 主题色（用户选择） ----------
+   stores/theme.ts 按本机记忆的 ui.accent 写 html[data-accent]；
+   未选择（default）时不挂属性，沿用各界面风格自带的强调色。
+   --accent-soft 不逐套手写：由强调色与当前表面色混合推导，
+   浅色主题下强调色深、深色主题下强调色浅，同一比例两边都成立。
+   选中态、主操作、focus ring 等 --action-* 派生色随 --accent 自动跟随。
+   笔记正文的 --note-accent 是刻意的砖红，不随主题色（见上方注释）。 */
+html[data-accent="moss"] {
+  --accent: var(--accent-chip-moss);
+  --accent-ink: light-dark(#F6FBF7, #0A1410);
+  --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--surface));
+}
+html[data-accent="teal"] {
+  --accent: var(--accent-chip-teal);
+  --accent-ink: light-dark(#F4FAF9, #0A1312);
+  --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--surface));
+}
+html[data-accent="sky"] {
+  --accent: var(--accent-chip-sky);
+  --accent-ink: light-dark(#F5F9FC, #0A1017);
+  --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--surface));
+}
+html[data-accent="indigo"] {
+  --accent: var(--accent-chip-indigo);
+  --accent-ink: light-dark(#F6F7FC, #0D0F1D);
+  --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--surface));
+}
+html[data-accent="plum"] {
+  --accent: var(--accent-chip-plum);
+  --accent-ink: light-dark(#F9F6FB, #140B19);
+  --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--surface));
+}
+html[data-accent="rust"] {
+  --accent: var(--accent-chip-rust);
+  --accent-ink: light-dark(#FCF7F4, #170C08);
+  --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--surface));
+}
+html[data-accent="amber"] {
+  --accent: var(--accent-chip-amber);
+  --accent-ink: light-dark(#FBF8F2, #171106);
+  --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--surface));
+}
+html[data-accent="rose"] {
+  --accent: var(--accent-chip-rose);
+  --accent-ink: light-dark(#FCF5F7, #170B0F);
+  --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--surface));
 }

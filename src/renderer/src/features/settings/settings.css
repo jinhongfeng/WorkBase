@@ -1,0 +1,382 @@
+/* 设置页统一高度：卡片铺满内容区，切换 tab 不再改变页面高度，超出内容在内容区内部滚动。 */
+.page.preferences-page {
+  max-width: 1000px;
+  height: 100%;
+  padding-bottom: 24px;
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+}
+.preferences-shell {
+  --preferences-header-height: 64px;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+}
+.preferences-shell > .page-head {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  align-items: center;
+  height: var(--preferences-header-height);
+  margin: 0;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border-strong);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  background: var(--surface);
+}
+.preferences-shell > .page-head h1 { font-size: 22px; }
+.preferences-layout {
+  display: grid;
+  grid-template-columns: 176px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  min-height: 0;
+  border-radius: 0 0 var(--r-lg) var(--r-lg);
+  background: var(--surface-2);
+}
+/* 导航列随布局高度拉伸，行必须靠顶排列，否则 4 个入口会被均分到整列高度。 */
+.preferences-nav {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding: 16px 12px;
+}
+.preferences-nav button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 40px;
+  padding: 4px 12px;
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+  font-size: 13px;
+  text-align: left;
+}
+.preferences-nav button svg { flex: none; }
+.preferences-nav button:hover { background: var(--surface-3); color: var(--text); }
+.preferences-nav button[aria-current="page"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.preferences-content {
+  min-width: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: 24px 28px 20px;
+  border-inline-start: 1px solid var(--border-strong);
+  border-radius: 0 0 var(--r-lg) 0;
+  background: var(--surface);
+}
+.preferences-section > header { margin-bottom: 20px; }
+.preferences-section h2 { font-size: 18px; font-weight: 650; line-height: 1.4; }
+.preferences-section-desc { margin-top: 4px; color: var(--text-2); font-size: 13px; }
+.preferences-section h3 { font-size: 14px; font-weight: 600; }
+.preferences-group {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-strong);
+}
+.preferences-group > h3, .preferences-group-title { margin-bottom: 12px; }
+.preferences-ai-fields { display: grid; gap: 12px; }
+.preferences-ai-fields .field, .preferences-ai-options .field { align-content: start; }
+.preferences-ai-fields .input, .preferences-ai-options .input {
+  height: 36px;
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+}
+.preferences-ai-fields .input:focus, .preferences-ai-options .input:focus { border-color: var(--accent); }
+.preferences-ai-fields .input:disabled { opacity: .55; }
+.preferences-ai-fields .field > label { display: flex; align-items: center; gap: 8px; }
+.preferences-ai-fields .status-label {
+  padding: 0 6px;
+  border-radius: var(--r-xs);
+  background: var(--success-soft);
+  font-size: 11px;
+}
+.preferences-key-info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 16px;
+}
+.preferences-key-info label { min-height: 24px; color: var(--text-2); font-size: 12px; }
+.preferences-key-info .input-hint, .preferences-ai-options .input-hint,
+.preferences-ai-footer .input-hint { margin: 0; }
+/* 数字项右侧单位：常驻提示取值范围 / 计量单位。 */
+.preferences-number-field { position: relative; }
+.preferences-number-field .input { padding-right: 54px; }
+.preferences-number-field > span {
+  position: absolute;
+  right: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-3);
+  font-size: 11.5px;
+  pointer-events: none;
+}
+.preferences-ai-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 184px), 1fr)); gap: 12px 16px; }
+.preferences-section:has(> .preferences-ai-status) { min-height: 100%; display: flex; flex-direction: column; }
+.preferences-ai-status { gap: 4px; padding-block: 16px; font-size: 14px; }
+.preferences-ai-status[role="alert"] strong { color: var(--danger); }
+.preferences-ai-status .input-hint { margin: 0; overflow-wrap: anywhere; }
+.preferences-ai-footer { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 12px; }
+.preferences-ai-footer .input-hint { flex: 1 1 220px; }
+.preferences-actions { flex-wrap: wrap; }
+.preferences-content .field + .preferences-actions { margin-top: 12px; }
+.preferences-backup + .preferences-path { margin-top: 12px; }
+.preferences-path {
+  padding: 8px 12px;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  font: 12px/1.65 var(--font-mono);
+  overflow-wrap: anywhere;
+}
+.preferences-themes {
+  display: inline-grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+}
+/* 四种界面风格单行排布；窄容器（设置面板收窄）时回退两列，避免 nowrap 标签溢出。 */
+.preferences-workspace-styles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@container (max-width: 620px) {
+  .preferences-workspace-styles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.preferences-themes button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 4px 10px;
+  border-radius: var(--r-xs);
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.preferences-themes button svg { visibility: hidden; }
+.preferences-themes button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.preferences-themes button[aria-pressed="true"] svg { visibility: visible; }
+.preferences-themes button:not([aria-pressed="true"]):hover { background: var(--surface); color: var(--text); }
+/* 界面风格按钮：每项带一枚自己风格的识别色点，选中态用该风格的底色与强调色，
+   token 取值见 tokens.css 的 --style-chip-* 组（与各外观块同步，未激活也可预览）。 */
+.preferences-workspace-styles button {
+  --style-chip: var(--accent);
+  --style-selected-bg: var(--accent-soft);
+}
+.preferences-workspace-styles button::before {
+  content: '';
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--style-chip);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 14%, transparent);
+}
+.preferences-workspace-styles button[data-style='standard'] {
+  --style-chip: var(--style-chip-standard);
+  --style-selected-bg: var(--style-chip-standard-soft);
+}
+.preferences-workspace-styles button[data-style='paper'] {
+  --style-chip: var(--style-chip-paper);
+  --style-selected-bg: var(--style-chip-paper-soft);
+}
+.preferences-workspace-styles button[data-style='neumorphism'] {
+  --style-chip: var(--style-chip-neumorphism);
+  --style-selected-bg: var(--style-chip-neumorphism-soft);
+}
+/* 拟态选中态带内凹浮雕感（--neu-inset 的预览镜像 token）。 */
+.preferences-workspace-styles button[data-style='neumorphism'][aria-pressed='true'] {
+  box-shadow: var(--style-chip-neumorphism-shadow);
+}
+.preferences-workspace-styles button[data-style='apple'] {
+  --style-chip: var(--style-chip-apple);
+  --style-selected-bg: var(--style-chip-apple-soft);
+}
+.preferences-themes.preferences-workspace-styles button[aria-pressed='true'] {
+  background: var(--style-selected-bg);
+  color: var(--style-chip);
+  /* 强调色细描边：让纸面这类低对比选中底色也和其他风格一样有清晰的选中胶囊感。 */
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--style-chip) 32%, transparent);
+}
+/* 主题色选择：色点取 tokens.css 的 --accent-chip-*（与 html[data-accent]
+   覆盖块同源）；「风格默认」的色点用 --accent-default-swatch，
+   始终显示当前界面风格自带的强调色。 */
+.preferences-themes.preferences-accents { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+@container (max-width: 620px) {
+  .preferences-themes.preferences-accents { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.preferences-accents button { --accent-chip: var(--accent); }
+.preferences-accents button[data-accent='default'] { --accent-chip: var(--accent-default-swatch); }
+.preferences-accents button[data-accent='moss'] { --accent-chip: var(--accent-chip-moss); }
+.preferences-accents button[data-accent='teal'] { --accent-chip: var(--accent-chip-teal); }
+.preferences-accents button[data-accent='sky'] { --accent-chip: var(--accent-chip-sky); }
+.preferences-accents button[data-accent='indigo'] { --accent-chip: var(--accent-chip-indigo); }
+.preferences-accents button[data-accent='plum'] { --accent-chip: var(--accent-chip-plum); }
+.preferences-accents button[data-accent='rust'] { --accent-chip: var(--accent-chip-rust); }
+.preferences-accents button[data-accent='amber'] { --accent-chip: var(--accent-chip-amber); }
+.preferences-accents button[data-accent='rose'] { --accent-chip: var(--accent-chip-rose); }
+.accent-swatch {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent-chip);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 14%, transparent);
+}
+.preferences-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  column-gap: 24px;
+  margin: 0;
+}
+.preferences-shortcuts > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.preferences-shortcuts dd, .preferences-app-info dd { margin: 0; }
+.preferences-app-info { display: grid; gap: 12px; margin: 0; font-size: 13px; }
+.preferences-app-info > div {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 8px;
+}
+.preferences-app-info dt { color: var(--text-2); }
+
+/* 壁纸类型 Tab：分割工作台壁纸与沉浸背景。 */
+.preferences-wallpaper-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  margin-top: 20px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+}
+.preferences-wallpaper-tabs button {
+  flex: 1;
+  height: 30px;
+  border-radius: var(--r-xs);
+  font-size: 13px;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.preferences-wallpaper-tabs button:hover { color: var(--text); }
+.preferences-wallpaper-tabs button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.preferences-wallpaper-tabs + .wallpaper-settings { margin-top: 16px; padding-top: 0; border-top: 0; }
+.wallpaper-clear { margin-bottom: 12px; }
+
+.wallpaper-settings { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+.wallpaper-settings .section-heading { margin-bottom: 12px; }
+.wallpaper-sources { display: flex; flex-wrap: wrap; gap: 8px; }
+.wallpaper-display { margin-bottom: 12px; }
+.wallpaper-display .input { width: min(100%, 180px); }
+.wallpaper-mode { display: grid; gap: 8px; margin-bottom: 12px; }
+.wallpaper-url { margin-top: 12px; }
+.wallpaper-url label { font-size: 12px; color: var(--text-2); }
+.wallpaper-url .input { min-width: 0; flex: 1; }
+.wallpaper-url .button { flex-shrink: 0; }
+.wallpaper-empty { margin: 16px 0; padding: 16px; background: var(--surface-2); border-radius: var(--r-sm); color: var(--text-2); font-size: 12px; text-align: center; }
+.wallpaper-empty:not([role="status"]) { min-block-size: 112px; display: grid; place-content: safe center; }
+.wallpaper-error { color: var(--danger); font-size: 12px; margin-top: 12px; overflow-wrap: anywhere; }
+.wallpaper-error .button { margin-left: 8px; }
+.wallpaper-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin: 16px 0; }
+.wallpaper-card { position: relative; border: 2px solid var(--border); border-radius: var(--r-sm); overflow: hidden; min-width: 0; }
+.wallpaper-card.is-active { border-color: var(--accent); }
+.wallpaper-card:hover { border-color: var(--border-strong); }
+.wallpaper-card.is-active:hover { border-color: var(--accent); }
+.wallpaper-select { display: block; width: 100%; text-align: left; }
+.wallpaper-select img { width: 100%; height: 90px; display: block; object-fit: scale-down; background: var(--surface-2); }
+.wallpaper-video-preview { height: 90px; display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--surface-2); color: var(--text-2); font-size: 12px; }
+.wallpaper-label { display: block; padding: 6px 8px; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wallpaper-badge { display: flex; align-items: center; gap: 3px; position: absolute; left: 6px; top: 6px; padding: 2px 5px; border-radius: var(--r-xs); font-size: 10.5px; color: var(--accent-ink); background: var(--accent); }
+.wallpaper-remove.button { position: absolute; right: 5px; top: 5px; padding: 4px; min-height: 29px; height: 29px; width: 29px; background: var(--surface); color: var(--danger); }
+.wallpaper-options { margin: 12px 0; max-width: 560px; }
+.wallpaper-carousel { display: flex; align-items: end; flex-wrap: wrap; gap: 8px 16px; }
+.wallpaper-carousel .field { width: 148px; }
+.wallpaper-stepper { display: grid; grid-template-columns: 34px minmax(0, 1fr) 34px; gap: 4px; }
+.wallpaper-stepper .input { padding-inline: 4px; text-align: center; appearance: textfield; }
+.wallpaper-stepper .input::-webkit-inner-spin-button { appearance: none; }
+.wallpaper-stepper .button { border-color: var(--border-strong); }
+.wallpaper-stepper .button[aria-disabled='true'] { opacity: .5; cursor: default; background: var(--surface); }
+.wallpaper-presets > summary { list-style: none; cursor: pointer; padding-inline: 8px; }
+.wallpaper-presets[open] > summary svg { transform: rotate(180deg); }
+.wallpaper-toggle { display: flex; align-items: center; gap: 8px; min-height: 34px; font-size: 12px; }
+.wallpaper-toggle input { width: 16px; height: 16px; }
+/* 蒙层滑块在左、对照预览固定在右侧顶对齐；容器过窄时塌成单列。 */
+.wallpaper-overlay-options {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 16px 24px;
+  margin-top: 12px;
+}
+@container (max-width: 620px) {
+  .wallpaper-overlay-options { grid-template-columns: minmax(0, 1fr); }
+}
+.wallpaper-overlay { flex: 1 1 180px; display: grid; gap: 6px; }
+.wallpaper-overlay label { display: flex; justify-content: space-between; font-size: 12px; }
+.wallpaper-overlay input, .wallpaper-comparison input { width: 100%; margin: 4px 0; }
+.wallpaper-overlay input:focus-visible, .wallpaper-comparison input:focus-visible { outline: 2px solid var(--accent); }
+.wallpaper-overlay .input-hint { margin-top: 0; }
+.wallpaper-comparison { width: min(100%, 168px); }
+.wallpaper-comparison-image { position: relative; overflow: hidden; height: 64px; border-radius: var(--r-xs); background: var(--surface-2); }
+.wallpaper-comparison-image img { display: block; width: 100%; height: 100%; object-fit: cover; }
+/* 预览按工作台真实层级：壁纸 → 内容底色 → 蒙层。 */
+.wallpaper-comparison-tint { position: absolute; inset: 0; background: color-mix(in srgb, var(--bg) var(--wp-content-tint), transparent); }
+.wallpaper-comparison-scrim { position: absolute; inset: 0; background: rgb(var(--wp-scrim-rgb)); }
+.wallpaper-comparison-divider { position: absolute; inset-block: 0; border-left: 1px solid var(--surface); }
+.wallpaper-comparison-labels { display: flex; justify-content: space-between; color: var(--text-2); font-size: 11px; }
+.wallpaper-comparison input { display: block; }
+/* 沉浸背景「沿用工作台壁纸」时的工作台清单镜像。 */
+.wallpaper-mirror { margin-top: 16px; padding-top: 4px; border-top: 1px dashed var(--border-strong); }
+.wallpaper-mirror .section-heading { margin-bottom: 4px; }
+.wallpaper-mirror .wallpaper-grid { margin-block: 12px; }
+.wallpaper-mirror > .input-hint { margin-top: 8px; }
+.engine-library { margin-top: 16px; padding: 16px; background: var(--surface-2); border-radius: var(--r-md); }
+.engine-library-head { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.engine-library-head h4 { font-size: 14px; font-weight: 600; }
+.engine-library-head .row { flex-wrap: wrap; gap: 6px; }
+.engine-search { display: block; margin: 12px 0 8px; }
+.engine-grid { max-height: 368px; overflow-y: auto; overscroll-behavior: contain; padding: 2px; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+.engine-grid .wallpaper-card { align-self: start; }
+.engine-grid .wallpaper-card:focus-visible { outline-offset: -4px; }
+.engine-grid .wallpaper-label { font-size: 11px; }
+.engine-asset-info { display: block; padding: 0 8px 6px; color: var(--text-2); font-size: 11px; }
+.engine-grid + .input-hint { margin-top: 8px; }
+
+@media (min-width: 900px) and (max-height: 740px) {
+  .page.preferences-page { padding-block: 16px; }
+  .preferences-ai-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .preferences-ai-fields > :last-child { grid-column: 1 / -1; }
+  .preferences-ai-status { padding-block: 8px; }
+}
+
+@container (max-width: 700px) {
+  .preferences-layout { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  .preferences-nav {
+    position: static;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 128px), 1fr));
+    padding: 8px;
+  }
+  .preferences-nav button { justify-content: center; gap: 8px; }
+  .preferences-content {
+    padding: 20px 16px;
+    border-inline-start: 0;
+    border-top: 1px solid var(--border-strong);
+    border-radius: 0 0 var(--r-lg) var(--r-lg);
+  }
+}

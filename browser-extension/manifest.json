@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "WorkBase 密码库",
+  "version": "1.0.1",
+  "minimum_chrome_version": "120",
+  "description": "在你授权的 HTTPS 网站保存和填充 WorkBase 本地密码库中的账号。",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAr3H3D5dNkWcza/8A+gzAU3RrUChrUaSYv/KolV5eY5fvmlckzFVfomCbkLxWHf2n2xrta/c8tN1ifWvXwjFL5mTG1LRJ5OiG71W+I2r37qjsBQp3TsUm20ThuS2/thBZ9Bw4eGgt+RGv6T09L3mTlktudugIdoYaHs22f//lYChvZYvoXKEX4sV9svK0rFh1j+aGqGPm4XanAr51z8RVXreAC6+cCoHzqT/bTmTsMr9e/Ky1x81eD/apdeOlyH+VamwmaEy1bOjLb6Y+9Z8DVVd4KOleXdQhLhya8uCZa01IAkII8QWGk1VbAJnE03FulZCGlebaAb+rfF8myDQP2wIDAQAB",
+  "permissions": ["activeTab", "alarms", "nativeMessaging", "scripting", "storage"],
+  "optional_host_permissions": ["https://*/*"],
+  "background": { "service_worker": "background.js", "type": "module" },
+  "action": { "default_title": "WorkBase 密码库", "default_popup": "popup.html" }
+}

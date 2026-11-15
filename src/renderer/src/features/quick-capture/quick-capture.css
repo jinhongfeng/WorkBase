@@ -1,0 +1,39 @@
+/* 全局速记浮窗：无边框小窗，独立于工作台外壳渲染。 */
+.quick-capture {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 100vh;
+  padding: 12px 14px;
+  box-sizing: border-box;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.quick-capture-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.quick-capture-title { color: var(--accent); font-size: 13px; font-weight: 650; }
+.quick-capture-hint { color: var(--text-3); font-size: 12px; }
+.quick-capture-input {
+  flex: 1;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.6;
+  resize: none;
+}
+.quick-capture-input::placeholder { color: var(--text-3); }
+.quick-capture-error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}

@@ -2,7 +2,8 @@ import { ipcMain } from 'electron'
 import { z } from 'zod'
 import type { NoteQuery, NoteSaveInput } from '@shared/types'
 import { channels } from '@shared/ipc-contract'
-import { archiveNote, getJournalByDate, getNote, listNotePage, listNotes, listTrashNotes, noteStats, removeNote, restoreNote, saveNote, toggleNotePin } from '../db/repo/notes'
+import { archiveNote, findNoteIdByTitle, getJournalByDate, getNote, listNoteBacklinks, listNotePage, listNotes, listTrashNotes, noteStats, removeNote, restoreNote, saveNote, toggleNotePin } from '../db/repo/notes'
+import { exportNote, type NoteExportFormat } from '../services/note-export'
 import { noArgs, validate } from './validation'
 
 const querySchema = z.object({
@@ -66,5 +67,24 @@ export function registerNotesIPC(): void {
   ipcMain.handle(channels.notesRestore, (_event, ...args: unknown[]) => {
     const [id] = validate(idSchema, args)
     restoreNote(id)
+  })
+  ipcMain.handle(channels.notesExport, (_event, ...args: unknown[]) => {
+    const [input] = validate(z.tuple([z.object({
+      id: z.string().min(1).max(64),
+      format: z.enum(['md', 'html', 'pdf'])
+    })]), args)
+    return exportNote(input as { id: string; format: NoteExportFormat })
+  })
+  ipcMain.handle(channels.notesWikiTarget, (_event, ...args: unknown[]) => {
+    const [title] = validate(z.tuple([z.string().trim().min(1).max(120)]), args)
+    const id = findNoteIdByTitle(title)
+    return id ? { id } : null
+  })
+  ipcMain.handle(channels.notesBacklinks, (_event, ...args: unknown[]) => {
+    const [input] = validate(z.tuple([z.object({
+      title: z.string().trim().min(1).max(200),
+      excludeId: z.string().min(1).max(64).optional()
+    })]), args)
+    return listNoteBacklinks(input.title, input.excludeId ?? null)
   })
 }

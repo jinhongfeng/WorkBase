@@ -29,7 +29,7 @@ export function ListSidebar({ id, className, label, collapsed, onToggle, childre
   const Icon = collapsed ? PanelLeftOpen : PanelLeftClose
 
   return (
-    <aside className={`list-sidebar ${className}`} aria-label={label} data-collapsed={collapsed}>
+    <aside className={`list-sidebar workspace-sidebar ${className}`} aria-label={label} data-collapsed={collapsed}>
       <button type="button" className="button ghost list-sidebar-toggle" aria-label={action} title={action}
         aria-controls={id} aria-expanded={!collapsed} onClick={onToggle}>
         <Icon size={16} aria-hidden="true" />

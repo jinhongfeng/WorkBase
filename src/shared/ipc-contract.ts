@@ -1,13 +1,14 @@
 import type {
-  AIConfig, AIConfigInput, AppPaths, ChatRequest, ChatResult, FocusStats, HabitInput, HabitWithLogs,
+  AIConfig, AIConfigInput, AppPaths, ChatRequest, ChatResult, ClipboardItem, ClipboardPage, ClipboardQuery,
+  FocusStats, HabitInput, HabitWithLogs,
   IeltsGenerateInput, IeltsGenerateResult, IeltsItem, IeltsReading, IeltsSet, IeltsStats, Note, NotePage, NoteQuery, NoteSaveInput,
   NoteStats, NoteSummary, Settings, SkillDetail, SkillImportResult, SkillInput, SkillQuery, SkillSummary,
-  StorageInfo, Todo, TodoInput, TodoStats, ActivitySource, ActivityYear, WallpaperConfig, WallpaperEngineLibrary, WallpaperScope, WallpaperUpdate,
+  StorageInfo, Todo, TodoInput, TodoStats, ActivitySource, ActivityYear, PageTimeStats, WallpaperConfig, WallpaperEngineLibrary, WallpaperScope, WallpaperUpdate,
   MediaQuery, MediaListResult, MediaGroup, MediaGroupInput, MediaImportResult, AIThread, AIMessage, BackupResult,
   FolderLibrary, LibraryFolder, LibraryFolderInput
 } from './types'
 
-import type { BillAccount, BillFileSelection, BillImportResult, BillOverview, BillRange, BillRowsPage } from './bills'
+import type { BillAccount, BillBudgetOverview, BillFileSelection, BillImportResult, BillOverview, BillRange, BillRowsPage, BillRule } from './bills'
 import type { MemoryEntry, MemoryInput, MemoryPage } from './memories'
 import type { VaultAccount, VaultAccountInput, VaultStatus } from './vault'
 import type { EnglishArticle, EnglishArticleSummary, EnglishArticleTopic } from './english-articles'
@@ -15,6 +16,8 @@ import type { DailyBriefStatus } from './daily-briefs'
 import type { InstalledPlugin } from './plugins'
 import type { ArticleCategory, ArticleDraft, ArticleGenerateInput } from './article-writing'
 import type { AnalyzeReferencesInput, CreateReferenceContentInput, RankingQuery, ReferenceAnalysis, ReferenceContent, ReferenceRanking } from './article-references'
+import type { ShelfInput, ShelfItem, ShelfQuery, ShelfStats } from './shelf'
+import type { Source, SourceEntryPage, SourceRefreshResult } from './sources'
 
 export const channels = {
   pluginsList: 'plugins:list', pluginsChanged: 'plugins:changed', pluginsOpenDirectory: 'plugins:openDirectory',
@@ -34,22 +37,33 @@ export const channels = {
   wallpaperUpdateConfig: 'wallpaper:updateConfig', wallpaperClear: 'wallpaper:clear',
   appSetWallpaperContrast: 'app:setWallpaperContrast',
   activityYear: 'activity:year', ieltsStudyPulse: 'ielts:studyPulse',
+  pageTimeTrack: 'pageTime:track', pageTimeStats: 'pageTime:stats',
   billAccount: 'bills:account', billSaveAccount: 'bills:saveAccount',
   billImportFile: 'bills:importFile', billFetchMail: 'bills:fetchFromMail', billOverview: 'bills:overview',
   billUnlockFile: 'bills:unlockFile', billCancelFileImport: 'bills:cancelFileImport', billRows: 'bills:rows',
+  billBudget: 'bills:budget', billSetBudget: 'bills:setBudget',
+  billRules: 'bills:rules', billSaveRule: 'bills:saveRule', billRemoveRule: 'bills:removeRule', billApplyRules: 'bills:applyRules',
   getPaths: 'app:getPaths', getVersion: 'app:getVersion', appRelaunch: 'app:relaunch',
   appCloseReady: 'app:closeReady', appFlushNotes: 'app:flushNotes', appFlushNotesResult: 'app:flushNotesResult',
   setWindowTheme: 'app:setWindowTheme',
   appGetLoginItem: 'app:getLoginItem', appSetLoginItem: 'app:setLoginItem',
+  quickCaptureHide: 'quick-capture:hide',
   getAll: 'settings:getAll', set: 'settings:set', setPinnedModules: 'settings:setPinnedModules',
   notesList: 'notes:list', notesListPage: 'notes:listPage', notesGet: 'notes:get', notesGetJournal: 'notes:getJournal', notesSave: 'notes:save',
   notesRemove: 'notes:remove', notesPin: 'notes:togglePin', notesStats: 'notes:stats',
-  notesTrash: 'notes:trash', notesArchive: 'notes:archive', notesRestore: 'notes:restore',
+  notesTrash: 'notes:trash', notesArchive: 'notes:archive', notesRestore: 'notes:restore', notesExport: 'notes:export',
+  notesWikiTarget: 'notes:wikiTarget', notesBacklinks: 'notes:backlinks',
   libraryFoldersList: 'libraryFolders:list', libraryFoldersSave: 'libraryFolders:save',
   libraryFoldersMove: 'libraryFolders:moveItem', libraryFoldersRemove: 'libraryFolders:remove',
   memoriesList: 'memories:list', memoriesSave: 'memories:save', memoriesRemove: 'memories:remove',
+  shelfList: 'shelf:list', shelfStats: 'shelf:stats', shelfSave: 'shelf:save', shelfRemove: 'shelf:remove',
+  sourcesList: 'sources:list', sourcesEntries: 'sources:entries', sourcesAdd: 'sources:add',
+  sourcesUpdate: 'sources:update', sourcesRemove: 'sources:remove', sourcesRefresh: 'sources:refresh',
+  sourcesSetRead: 'sources:setRead', sourcesReadEntry: 'sources:readEntry', sourcesOpenEntry: 'sources:openEntry',
   todosList: 'todos:list', todosStats: 'todos:stats', todosSave: 'todos:save', todosToggle: 'todos:toggle',
-  todosRemove: 'todos:remove', todosClearDone: 'todos:clearDone',
+  todosRemove: 'todos:remove', todosClearDone: 'todos:clearDone', todosReorder: 'todos:reorder',
+  clipboardList: 'clipboard:list', clipboardCopy: 'clipboard:copy', clipboardPin: 'clipboard:togglePin',
+  clipboardRemove: 'clipboard:remove', clipboardClear: 'clipboard:clear', clipboardSetEnabled: 'clipboard:setEnabled',
   ieltsSets: 'ielts:sets', ieltsItems: 'ielts:items', ieltsGenerate: 'ielts:generate',
   ieltsReading: 'ielts:reading',
   ieltsReview: 'ielts:review', ieltsRemoveSet: 'ielts:removeSet', ieltsStats: 'ielts:stats',
@@ -61,9 +75,9 @@ export const channels = {
   dailyBriefsRemove: 'dailyBriefs:remove', dailyBriefsChanged: 'dailyBriefs:changed',
   habitsList: 'habits:list', habitsCreate: 'habits:create', habitsRemove: 'habits:remove', habitsToggle: 'habits:toggle',
   habitsSetCount: 'habits:setCount',
-  focusAdd: 'focus:add', focusStats: 'focus:stats',
+  focusAdd: 'focus:add', focusStats: 'focus:stats', focusRename: 'focus:rename', focusRemove: 'focus:remove',
   aiConfig: 'ai:config', aiSaveConfig: 'ai:saveConfig', aiTest: 'ai:test', aiChat: 'ai:chat', aiDelta: 'ai:delta',
-  aiGenerateArticle: 'ai:generateArticle',
+  aiGenerateArticle: 'ai:generateArticle', aiDailyReport: 'ai:dailyReport',
   articleReferencesDiscover: 'articleReferences:discover', articleReferencesAnalyze: 'articleReferences:analyze', articleReferencesCreate: 'articleReferences:create',
   aiAbort: 'ai:abort', aiRegenerate: 'ai:regenerate', aiThreadsList: 'ai:threads:list', aiThreadsCreate: 'ai:threads:create',
   aiThreadsMessages: 'ai:threads:messages', aiThreadsRename: 'ai:threads:rename', aiThreadsRemove: 'ai:threads:remove',
@@ -113,6 +127,8 @@ export interface IPCContract {
   'wallpaper:updateConfig': { args: [input: WallpaperUpdate, scope?: WallpaperScope]; result: WallpaperConfig }
   'wallpaper:clear': { args: [scope?: WallpaperScope]; result: WallpaperConfig }
   'activity:year': { args: [input: { year: number; sources: ActivitySource[] }]; result: ActivityYear }
+  'pageTime:track': { args: [input: { page: string; seconds: number }]; result: void }
+  'pageTime:stats': { args: [year: number]; result: PageTimeStats }
   'ielts:studyPulse': { args: [input: { sessionId: string; active: boolean }]; result: void }
   'bills:account': { args: []; result: BillAccount | null }
   'bills:saveAccount': { args: [input: { email: string; authorizationCode: string }]; result: BillAccount }
@@ -122,6 +138,12 @@ export interface IPCContract {
   'bills:fetchFromMail': { args: [input: { password: string; sinceDays: number }]; result: BillImportResult }
   'bills:overview': { args: [input: { range: BillRange; page: number }]; result: BillOverview }
   'bills:rows': { args: [input: { range: BillRange; page: number; query?: string; direction?: 'income' | 'expense' }]; result: BillRowsPage }
+  'bills:budget': { args: [input: { month: string }]; result: BillBudgetOverview }
+  'bills:setBudget': { args: [input: { month: string; amountCents: number | null }]; result: void }
+  'bills:rules': { args: []; result: BillRule[] }
+  'bills:saveRule': { args: [input: { id?: string; pattern: string; category: string }]; result: BillRule[] }
+  'bills:removeRule': { args: [id: string]; result: BillRule[] }
+  'bills:applyRules': { args: []; result: { updated: number } }
   'app:getPaths': { args: []; result: AppPaths }
   'app:getVersion': { args: []; result: string }
   'app:relaunch': { args: []; result: void }
@@ -131,6 +153,7 @@ export interface IPCContract {
   'app:setWallpaperContrast': { args: [dark: boolean]; result: void }
   'app:getLoginItem': { args: []; result: boolean }
   'app:setLoginItem': { args: [enabled: boolean]; result: boolean }
+  'quick-capture:hide': { args: []; result: void }
   'settings:getAll': { args: []; result: Settings }
   'settings:set': { args: [key: string, value: string]; result: void }
   'settings:setPinnedModules': { args: [ids: string[]]; result: void }
@@ -145,6 +168,9 @@ export interface IPCContract {
   'notes:trash': { args: []; result: NoteSummary[] }
   'notes:archive': { args: [id: string]; result: void }
   'notes:restore': { args: [id: string]; result: void }
+  'notes:export': { args: [input: { id: string; format: 'md' | 'html' | 'pdf' }]; result: { path: string } | null }
+  'notes:wikiTarget': { args: [title: string]; result: { id: string } | null }
+  'notes:backlinks': { args: [input: { title: string; excludeId?: string }]; result: NoteSummary[] }
   'libraryFolders:list': { args: [library: FolderLibrary]; result: LibraryFolder[] }
   'libraryFolders:save': { args: [library: FolderLibrary, input: LibraryFolderInput]; result: LibraryFolder }
   'libraryFolders:moveItem': { args: [library: FolderLibrary, itemId: string, folderId: string | null]; result: void }
@@ -152,12 +178,32 @@ export interface IPCContract {
   'memories:list': { args: [page: number, year?: string | null]; result: MemoryPage }
   'memories:save': { args: [input: MemoryInput]; result: MemoryEntry }
   'memories:remove': { args: [id: string]; result: void }
+  'shelf:list': { args: [query: ShelfQuery]; result: ShelfItem[] }
+  'shelf:stats': { args: []; result: ShelfStats }
+  'shelf:save': { args: [input: ShelfInput]; result: ShelfItem }
+  'shelf:remove': { args: [id: string]; result: void }
+  'sources:list': { args: []; result: Source[] }
+  'sources:entries': { args: [input: { sourceId: string; q?: string; unreadOnly?: boolean; page: number }]; result: SourceEntryPage }
+  'sources:add': { args: [input: { name: string; url: string }]; result: Source[] }
+  'sources:update': { args: [input: { id: string; name?: string; enabled?: boolean }]; result: Source[] }
+  'sources:remove': { args: [id: string]; result: Source[] }
+  'sources:refresh': { args: [input: { id: string | null }]; result: { results: SourceRefreshResult[] } }
+  'sources:setRead': { args: [input: { id: string; read: boolean }]; result: void }
+  'sources:readEntry': { args: [input: { id: string; download?: boolean }]; result: string | null }
+  'sources:openEntry': { args: [id: string]; result: void }
   'todos:list': { args: []; result: Todo[] }
   'todos:stats': { args: []; result: TodoStats }
   'todos:save': { args: [input: TodoInput]; result: Todo }
   'todos:toggle': { args: [id: string]; result: Todo }
   'todos:remove': { args: [id: string]; result: void }
   'todos:clearDone': { args: []; result: void }
+  'todos:reorder': { args: [ids: string[]]; result: void }
+  'clipboard:list': { args: [query: ClipboardQuery]; result: ClipboardPage }
+  'clipboard:copy': { args: [id: string]; result: boolean }
+  'clipboard:togglePin': { args: [id: string]; result: ClipboardItem | null }
+  'clipboard:remove': { args: [id: string]; result: void }
+  'clipboard:clear': { args: []; result: void }
+  'clipboard:setEnabled': { args: [enabled: boolean]; result: void }
   'ielts:sets': { args: []; result: IeltsSet[] }
   'ielts:reading': { args: [setId: string]; result: IeltsReading | null }
   'ielts:items': { args: [setId?: string]; result: IeltsItem[] }
@@ -182,10 +228,13 @@ export interface IPCContract {
   'habits:setCount': { args: [input: { id: string; date: string; count: number }]; result: HabitWithLogs[] }
   'focus:add': { args: [input: { minutes: number; label?: string }]; result: FocusStats }
   'focus:stats': { args: []; result: FocusStats }
+  'focus:rename': { args: [input: { id: string; label: string }]; result: FocusStats }
+  'focus:remove': { args: [id: string]; result: FocusStats }
   'ai:config': { args: []; result: AIConfig }
   'ai:saveConfig': { args: [input: AIConfigInput]; result: AIConfig }
   'ai:test': { args: []; result: string }
   'ai:generateArticle': { args: [input: ArticleGenerateInput]; result: ArticleDraft }
+  'ai:dailyReport': { args: [input: { date?: string }]; result: { content: string } }
   'articleReferences:discover': { args: [query: RankingQuery | ArticleCategory]; result: ReferenceRanking }
   'articleReferences:analyze': { args: [input: AnalyzeReferencesInput]; result: ReferenceAnalysis }
   'articleReferences:create': { args: [input: CreateReferenceContentInput]; result: ReferenceContent }

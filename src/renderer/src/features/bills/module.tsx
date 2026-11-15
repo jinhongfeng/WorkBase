@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ChevronDown, Download, Mail, Wallet } from 'lucide-react'
-import { Bar, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import type { BillAccount, BillImportResult, BillOverview, BillRange, BillRowsPage, LockedBillFile } from '@shared/bills'
+import { ChevronDown, Download, ListFilter, Mail, Trash2, Wallet } from 'lucide-react'
+import { Bar, Cell, ComposedChart, Legend, Line, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import type { BillAccount, BillBudgetOverview, BillImportResult, BillOverview, BillRange, BillRule, BillRowsPage, LockedBillFile } from '@shared/bills'
 import { Button } from '../../components/ui/Button'
 import { Dialog } from '../../components/ui/Dialog'
 import { EmptyState } from '../../components/ui/EmptyState'
@@ -25,6 +25,10 @@ const dateTime = new Intl.DateTimeFormat('zh-CN', {
 })
 
 const CATEGORY_LIMIT = 6
+/** 分类用系列色：与首页支出分类卡同一组 token，环形切片与条形排行按序一一对应。 */
+const CATEGORY_COLORS = ['var(--accent)', 'var(--accent-3)', 'var(--accent-2)', 'var(--gold)', 'var(--success)', 'var(--danger)']
+const OTHER_CATEGORY_COLOR = 'var(--text-3)'
+const categoryColor = (index: number) => index < CATEGORY_LIMIT ? CATEGORY_COLORS[index] : OTHER_CATEGORY_COLOR
 const RANGES: { value: BillRange; label: string }[] = [
   { value: 'all', label: '全部' }, { value: '3m', label: '近3月' }, { value: '6m', label: '近6月' },
   { value: '12m', label: '近12月' }, { value: 'thisYear', label: '今年' }, { value: 'lastYear', label: '去年' }
@@ -45,10 +49,19 @@ function BillAnalysis({ overview }: { overview: BillOverview }) {
   const otherAmount = spending.slice(CATEGORY_LIMIT).reduce((sum, item) => sum + item.amountCents, 0)
   const categoryRows = spending.slice(0, CATEGORY_LIMIT).map(({ label, amountCents }) => ({ label, amountCents }))
   if (otherAmount > 0) categoryRows.push({ label: '其余分类', amountCents: otherAmount })
+  // 趋势摘要：月均与峰值需要至少两个月的数据才有意义。
+  const peak = monthly.length >= 2
+    ? monthly.reduce((best, point) => (point.expenseCents > best.expenseCents ? point : best), monthly[0])
+    : null
   return <div className="bills-charts">
     <section className="card bills-chart" aria-labelledby="bills-trend-title">
       <div className="card-head"><span className="card-title" id="bills-trend-title">月度收支趋势</span><span className="card-meta">单位：元</span></div>
       <div className="card-body">
+        {peak && <p className="bills-trend-meta">
+          <span>月均支出 <strong className="num">{formatMoney(Math.round(summary.totalExpenseCents / monthly.length))}</strong></span>
+          <span>单月峰值 <strong className="num">{formatMoney(peak.expenseCents)}</strong>（{Number(peak.label.slice(5))} 月）</span>
+          <span>范围结余 <strong className="num">{formatMoney(summary.balanceCents)}</strong></span>
+        </p>}
         {monthly.length < 2 ? <p className="bills-chart-empty">数据不足，导入更多账单后可见趋势</p> :
           <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
             <ComposedChart data={monthly} margin={{ top: 12, right: 20, bottom: 4, left: 8 }}>
@@ -68,18 +81,31 @@ function BillAnalysis({ overview }: { overview: BillOverview }) {
         {otherAmount > 0 && <span className="card-meta">前 {CATEGORY_LIMIT} 类及其他</span>}
       </div>
       <div className="card-body">
-        {total > 0 && categoryRows.length > 0 ? <BarList
-          compact
-          label="各类支出金额及占比"
-          max={total}
-          items={categoryRows.map(({ label, amountCents }, index) => ({
-            label,
-            value: amountCents,
-            display: formatMoney(amountCents),
-            note: percent.format(amountCents / total),
-            tone: index === CATEGORY_LIMIT ? 'muted' : 'accent'
-          }))}
-        /> : <p className="bills-chart-empty">暂无可分析的支出金额</p>}
+        {total > 0 && categoryRows.length > 0 ? <>
+          {/* 环形占比总览：切片色与下方条形排行一一对应，图形作装饰、数据读数由 BarList 承担。 */}
+          <div className="bills-donut" aria-hidden="true">
+            <PieChart width={132} height={132} accessibilityLayer={false}>
+              <Pie data={categoryRows} dataKey="amountCents" nameKey="label" innerRadius={46} outerRadius={64}
+                stroke="var(--surface)" isAnimationActive={false}>
+                {categoryRows.map((row, index) => <Cell key={row.label} fill={categoryColor(index)} />)}
+              </Pie>
+            </PieChart>
+            <span>总支出<strong>{formatMoney(total)}</strong></span>
+          </div>
+          <BarList
+            compact
+            label="各类支出金额及占比"
+            max={total}
+            items={categoryRows.map(({ label, amountCents }, index) => ({
+              label,
+              value: amountCents,
+              display: formatMoney(amountCents),
+              note: percent.format(amountCents / total),
+              tone: index === CATEGORY_LIMIT ? 'muted' : 'accent',
+              color: categoryColor(index)
+            }))}
+          />
+        </> : <p className="bills-chart-empty">暂无可分析的支出金额</p>}
       </div>
     </section>
   </div>
@@ -106,6 +132,14 @@ function BillsPage() {
   const [sinceDays, setSinceDays] = useState(90)
   const [busy, setBusy] = useState(false)
   const [pageError, setPageError] = useState('')
+  const [budget, setBudget] = useState<BillBudgetOverview | null>(null)
+  const [budgetInput, setBudgetInput] = useState('')
+  const [rulesOpen, setRulesOpen] = useState(false)
+  const [rules, setRules] = useState<BillRule[]>([])
+  const [rulePattern, setRulePattern] = useState('')
+  const [ruleCategory, setRuleCategory] = useState('')
+  const [ruleBusy, setRuleBusy] = useState(false)
+  const [applyingRules, setApplyingRules] = useState(false)
   const [formError, setFormError] = useState<{ message: string; failures?: BillImportResult['failures'] } | null>(null)
   const [result, setResult] = useState<BillImportResult | null>(null)
   const mounted = useRef(false)
@@ -139,6 +173,19 @@ function BillsPage() {
     return () => { active = false }
   }, [range, page, refresh])
 
+  // 本月预算跟随收支概览的当前月份；导入、设置预算后随 refresh 重读。
+  const budgetMonth = overview?.currentMonth.label
+  useEffect(() => {
+    if (!budgetMonth) return
+    let active = true
+    void window.api.bills.budget({ month: budgetMonth }).then(value => {
+      if (!active) return
+      setBudget(value)
+      setBudgetInput(value.budgetCents === null ? '' : String(value.budgetCents / 100))
+    }).catch(() => undefined)
+    return () => { active = false }
+  }, [budgetMonth, refresh])
+
   // 交易明细独立加载：搜索与收/支筛选只作用于明细，不影响图表统计。
   useEffect(() => {
     if (!detailsOpen) return
@@ -162,6 +209,66 @@ function BillsPage() {
     setPageError('')
     setFormError(null)
     setAccountOpen(true)
+  }
+
+  /** 预算按元输入、以分保存；输入为空即清除该月预算。 */
+  async function saveBudget() {
+    if (!budgetMonth) return
+    const yuan = budgetInput.trim()
+    const value = yuan ? Math.round(Number(yuan) * 100) : null
+    if (yuan && (!Number.isFinite(value) || (value ?? 0) < 0)) {
+      window.toast.error('预算金额格式不正确')
+      return
+    }
+    setBusy(true)
+    try {
+      await window.api.bills.setBudget({ month: budgetMonth, amountCents: value })
+      setRefresh(value => value + 1)
+      window.toast.success(value === null ? '已清除本月预算' : '本月预算已保存')
+    } catch (reason) {
+      window.toast.error(humanError(reason))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function openRules() {
+    setRulePattern(''); setRuleCategory('')
+    setRulesOpen(true)
+    try { setRules(await window.api.bills.rules()) }
+    catch (reason) { window.toast.error(humanError(reason)) }
+  }
+
+  async function saveRule() {
+    if (!rulePattern.trim() || !ruleCategory.trim() || ruleBusy) return
+    setRuleBusy(true)
+    try {
+      setRules(await window.api.bills.saveRule({ pattern: rulePattern, category: ruleCategory }))
+      setRulePattern(''); setRuleCategory('')
+    } catch (reason) {
+      window.toast.error(humanError(reason))
+    } finally {
+      setRuleBusy(false)
+    }
+  }
+
+  async function removeRule(rule: BillRule) {
+    try { setRules(await window.api.bills.removeRule(rule.id)) }
+    catch (reason) { window.toast.error(humanError(reason)) }
+  }
+
+  async function applyRules() {
+    if (applyingRules) return
+    setApplyingRules(true)
+    try {
+      const { updated } = await window.api.bills.applyRules()
+      setRefresh(value => value + 1)
+      window.toast.success(`已按规则重新归类 ${updated} 笔交易`)
+    } catch (reason) {
+      window.toast.error(humanError(reason))
+    } finally {
+      setApplyingRules(false)
+    }
   }
 
   async function saveAccount() {
@@ -248,6 +355,9 @@ function BillsPage() {
   }, [rowsData])
   const change = currentMonth?.lastMonthExpenseCents
     ? (currentMonth.expenseCents - currentMonth.lastMonthExpenseCents) / currentMonth.lastMonthExpenseCents * 100 : null
+  // 迷你走势随当前时间范围走（overview.monthly 已按 range 过滤）。
+  const expenseSeries = overview?.monthly.map(point => point.expenseCents) ?? []
+  const incomeSeries = overview?.monthly.map(point => point.incomeCents) ?? []
   const showHeadActions = loading || Boolean(overview?.hasTransactions)
 
   return <div className="page bills-page">
@@ -256,6 +366,7 @@ function BillsPage() {
       actions={<>
         <Button variant="secondary" disabled={busy} title={account?.email} onClick={() => (account ? openMailImport() : openAccount())}><Mail size={15} />{account ? '从邮箱获取' : '连接邮箱'}</Button>
         {showHeadActions && <Button variant="primary" disabled={busy} onClick={() => void chooseFile()}><Download size={15} />导入文件</Button>}
+        {showHeadActions && <Button variant="ghost" disabled={busy} onClick={() => void openRules()}><ListFilter size={15} />分类规则</Button>}
       </>}
     />
     {pageError && <Alert tone="danger">{pageError}</Alert>}
@@ -284,10 +395,36 @@ function BillsPage() {
         </>}
         {!loading && summary && overview.rowCount > 0 && <>
           <div className="bills-overview-divider" aria-hidden="true" />
-          <StatCard label="范围收入" value={formatMoney(summary.totalIncomeCents)} />
-          <StatCard label="范围支出" value={formatMoney(summary.totalExpenseCents)} />
+          <StatCard label="范围收入" value={formatMoney(summary.totalIncomeCents)}
+            spark={incomeSeries} sparkLabel="范围内各月收入走势" />
+          <StatCard label="范围支出" value={formatMoney(summary.totalExpenseCents)}
+            spark={expenseSeries} sparkLabel="范围内各月支出走势" />
           <StatCard label="范围结余" value={formatMoney(summary.balanceCents)} tone={summary.balanceCents < 0 ? 'down' : 'flat'} />
         </>}
+      </div>
+    </section>}
+    {overview?.hasTransactions && budgetMonth && budget && <section className="card bills-budget" aria-label="本月预算">
+      <div className="card-head">
+        <span className="card-title">本月预算 · {budget.month}</span>
+        {budget.budgetCents !== null && (
+          <span className="card-meta">
+            已支出 {formatMoney(budget.spentCents)} / 预算 {formatMoney(budget.budgetCents)} ·
+            剩余 {formatMoney(Math.max(0, budget.budgetCents - budget.spentCents))}{budget.spentCents > budget.budgetCents ? '（已超支）' : ''}
+          </span>
+        )}
+      </div>
+      <div className="card-body bills-budget-body">
+        <div className="bills-budget-bar" role="progressbar" aria-label="本月预算使用进度"
+          aria-valuemin={0} aria-valuemax={budget.budgetCents ?? undefined} aria-valuenow={budget.budgetCents === null ? undefined : budget.spentCents}>
+          <span style={{ width: `${budget.budgetCents ? Math.min(100, Math.round(budget.spentCents / budget.budgetCents * 100)) : 0}%` }}
+            data-over={budget.budgetCents !== null && budget.spentCents > budget.budgetCents || undefined} />
+        </div>
+        <div className="bills-budget-edit">
+          <input className="input" type="number" min="0" step="0.01" placeholder="设置本月预算（元），清空后保存即移除"
+            aria-label="本月预算金额（元）"
+            value={budgetInput} onChange={event => setBudgetInput(event.target.value)} />
+          <Button variant="secondary" disabled={busy} onClick={() => void saveBudget()}>保存预算</Button>
+        </div>
       </div>
     </section>}
     {loading && <div className="bills-loading" aria-live="polite"><Spinner /><span>正在读取本地账单…</span></div>}
@@ -345,6 +482,34 @@ function BillsPage() {
       </section>
       <p className="bills-data-note">旧版导入记录缺少收支方向与交易对方，按支出统计，交易对方留空。</p>
     </>}
+    <Dialog open={rulesOpen} title="分类规则" onClose={() => { if (!ruleBusy && !applyingRules) setRulesOpen(false) }}>
+      <div className="bills-rules">
+        <p className="muted">交易对方包含关键字时，导入和「应用到已有账单」会把分类改写为规则分类；先创建的规则优先。</p>
+        <form className="bills-rules-add" onSubmit={event => { event.preventDefault(); void saveRule() }}>
+          <input className="input" data-dialog-autofocus placeholder="交易对方包含…" aria-label="交易对方关键字"
+            value={rulePattern} maxLength={80} onChange={event => setRulePattern(event.target.value)} />
+          <input className="input" placeholder="归类到…" aria-label="规则分类" list="bills-category-options"
+            value={ruleCategory} maxLength={40} onChange={event => setRuleCategory(event.target.value)} />
+          <datalist id="bills-category-options">
+            {(overview?.categories ?? []).map(category => <option key={category.label} value={category.label} />)}
+          </datalist>
+          <Button type="submit" variant="primary" loading={ruleBusy} disabled={!rulePattern.trim() || !ruleCategory.trim()}>添加规则</Button>
+        </form>
+        <ul className="bills-rules-list">
+          {rules.length === 0 ? <p className="bills-chart-empty">还没有规则，添加后新导入的账单会自动按规则归类。</p> : rules.map(rule => (
+            <li key={rule.id}>
+              <span className="bills-rule-pattern">{rule.pattern}</span>
+              <span className="bills-rule-arrow" aria-hidden="true">→</span>
+              <span className="bills-rule-category">{rule.category}</span>
+              <button className="icon-action danger" aria-label={`删除规则 ${rule.pattern}`} onClick={() => void removeRule(rule)}><Trash2 size={13} /></button>
+            </li>
+          ))}
+        </ul>
+        <div className="actions">
+          <Button variant="secondary" loading={applyingRules} disabled={!rules.length} onClick={() => void applyRules()}>应用到已有账单</Button>
+        </div>
+      </div>
+    </Dialog>
     <Dialog open={accountOpen} title="连接 QQ 邮箱" onClose={() => { if (!busy) { setAccountOpen(false); setAuthorizationCode(''); setFormError(null) } }}>
       <form className="bills-form" onSubmit={event => { event.preventDefault(); void saveAccount() }}>
         <p className="muted">先在 QQ 邮箱开启 IMAP 服务，再填写邮箱地址和邮箱授权码。</p>

@@ -8,13 +8,17 @@ import { registerSettingsIPC } from './ipc/settings'
 import { registerNotesIPC } from './ipc/notes'
 import { registerLibraryFoldersIPC } from './ipc/library-folders'
 import { registerMemoriesIPC } from './ipc/memories'
+import { registerShelfIPC } from './ipc/shelf'
+import { registerSourcesIPC } from './ipc/sources'
 import { registerVaultIPC } from './ipc/vault'
 import { registerTodosIPC } from './ipc/todos'
+import { registerClipboardIPC } from './ipc/clipboard'
 import { registerIeltsIPC } from './ipc/ielts'
 import { registerEnglishArticlesIPC } from './ipc/english-articles'
 import { registerDailyBriefIPC } from './ipc/daily-briefs'
 import { registerPluginIPC } from './ipc/plugins'
 import { registerGrowthIPC } from './ipc/growth'
+import { registerPagesIPC } from './ipc/pages'
 import { registerAiIPC } from './ipc/ai'
 import { registerArticleReferenceIPC } from './ipc/article-references'
 import { registerAssetIPC } from './ipc/assets'
@@ -27,6 +31,10 @@ import { backfillMediaFingerprints } from './media-dedupe'
 import { ASSET_SCHEME, resolveAssetPath, serveAssetFile } from './assets'
 import { logMain } from './log'
 import { registerQuitCoordinator } from './quit'
+import { setupQuickCapture } from './quick-capture'
+import { setupClipboardWatcher } from './services/clipboard-watcher'
+import { setupNotifications } from './services/notifications'
+import { startSourceScheduler } from './services/rss'
 import { PLUGIN_SCHEME } from '@shared/plugins'
 
 protocol.registerSchemesAsPrivileged([{
@@ -79,14 +87,20 @@ else {
     })
 
     registerAppIPC(); registerSettingsIPC(); registerNotesIPC(); registerTodosIPC()
+    registerClipboardIPC()
+    setupClipboardWatcher()
     registerLibraryFoldersIPC()
     registerIeltsIPC(); registerEnglishArticlesIPC(); registerGrowthIPC(); registerAiIPC(); registerAssetIPC(); registerStorageIPC()
+    registerPagesIPC()
     registerArticleReferenceIPC()
     registerWallpaperIPC(); registerBillsIPC(); registerSkillsIPC()
-    registerMediaIPC(); registerMemoriesIPC(); registerVaultIPC()
+    registerMediaIPC(); registerMemoriesIPC(); registerShelfIPC(); registerSourcesIPC(); registerVaultIPC()
     registerDailyBriefIPC()
     registerPluginIPC()
     registerQuitCoordinator()
+    setupQuickCapture()
+    startSourceScheduler()
+    setupNotifications()
     setupTray(createWindow())
     void backfillMediaFingerprints()
       .catch(error => logMain(`Media fingerprint backfill failed: ${error instanceof Error ? error.message : String(error)}`))

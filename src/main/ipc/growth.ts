@@ -2,7 +2,7 @@ import { ipcMain } from 'electron'
 import { z } from 'zod'
 import type { HabitInput } from '@shared/types'
 import { channels } from '@shared/ipc-contract'
-import { addFocusSession, createHabit, focusStats, listHabits, removeHabit, setHabitCount, toggleHabit } from '../db/repo/growth'
+import { addFocusSession, createHabit, focusStats, listHabits, removeFocusSession, removeHabit, renameFocusSession, setHabitCount, toggleHabit } from '../db/repo/growth'
 import { validate } from './validation'
 import { activityYear } from '../db/repo/activity'
 
@@ -52,4 +52,12 @@ export function registerGrowthIPC(): void {
     return addFocusSession(input.minutes, input.label ?? '')
   })
   ipcMain.handle(channels.focusStats, () => focusStats())
+  ipcMain.handle(channels.focusRename, (_event, ...args: unknown[]) => {
+    const [input] = validate(z.tuple([z.object({ id: z.string().min(1).max(64), label: z.string().max(80) })]), args)
+    return renameFocusSession(input.id, input.label.trim())
+  })
+  ipcMain.handle(channels.focusRemove, (_event, ...args: unknown[]) => {
+    const [id] = validate(z.tuple([z.string().min(1).max(64)]), args)
+    return removeFocusSession(id)
+  })
 }

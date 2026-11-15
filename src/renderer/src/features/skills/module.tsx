@@ -252,7 +252,7 @@ function SkillsPage() {
           query={debounced} filtering={Boolean(debounced) || filter !== 'all'} onChanged={() => { void refresh() }}
           renderItem={item => (
             <button
-              className="skill-card"
+              className="skill-card workspace-sidebar-row"
               aria-current={item.id === activeId}
               onClick={() => select(item.id)}
             >

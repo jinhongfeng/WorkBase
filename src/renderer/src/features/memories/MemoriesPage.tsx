@@ -106,14 +106,14 @@ export default function MemoriesPage() {
     </div>}
 
     {page && archive.length > 0 && <div className="memory-layout">
-      <nav className="memory-archive" aria-label="按年份查看">
+      <nav className="memory-archive workspace-sidebar" aria-label="按年份查看">
         <h2><CalendarDays size={16} aria-hidden="true" />年份索引</h2>
         <ul>
-          <li><Button variant="ghost" aria-pressed={page.year === null} onClick={() => load(0, null)}>
+          <li><Button variant="ghost" className="workspace-sidebar-row" aria-pressed={page.year === null} onClick={() => load(0, null)}>
             全部年份<span>{total}<span className="memory-count-unit"> 条</span></span>
           </Button></li>
           {archive.map(({ year, count }) => <li key={year}>
-            <Button variant="ghost" aria-pressed={page.year === year} onClick={() => load(0, year)}>
+            <Button variant="ghost" className="workspace-sidebar-row" aria-pressed={page.year === year} onClick={() => load(0, year)}>
               {year} 年<span>{count}<span className="memory-count-unit"> 条</span></span>
             </Button>
           </li>)}

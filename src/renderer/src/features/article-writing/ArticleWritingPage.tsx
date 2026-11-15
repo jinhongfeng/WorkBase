@@ -14,6 +14,7 @@ import { useWriting } from './writing'
 import { WritingSkeleton } from './WritingSkeleton'
 import { ReferenceStudio } from './ReferenceStudio'
 import { PlatformRankings } from './PlatformRankings'
+import { DailyBriefPanel } from './DailyBriefPanel'
 import { useReferenceWorkspace } from './reference-workspace'
 import './article-writing.css'
 
@@ -136,7 +137,7 @@ function QuickArticle() {
 }
 
 export default function HotspotTrackingPage() {
-  const [view, setView] = useState<'rankings' | 'writing'>('rankings')
+  const [view, setView] = useState<'rankings' | 'brief' | 'writing'>('rankings')
   const [referenceMode, setReferenceMode] = useState(() => useReferenceWorkspace.getState().sources.length > 0)
   const sourceCount = useReferenceWorkspace(state => state.sources.length)
   const rankingsTab = useRef<HTMLButtonElement>(null)
@@ -151,13 +152,14 @@ export default function HotspotTrackingPage() {
       <PageHeader title="热点追踪" />
       <div className="segmented article-writing-mode" role="group" aria-label="热点追踪功能">
         <button ref={rankingsTab} type="button" aria-pressed={view === 'rankings'} onClick={openRankings}>平台热点</button>
+        <button type="button" aria-pressed={view === 'brief'} onClick={() => setView('brief')}>每日简报</button>
         <button type="button" aria-pressed={view === 'writing'} onClick={() => setView('writing')}>
-          自媒体写作{sourceCount > 0 && view === 'rankings' && <span className="hotspot-source-count" aria-label={`${sourceCount} 条参考素材`}>{sourceCount}</span>}
+          自媒体写作{sourceCount > 0 && view !== 'writing' && <span className="hotspot-source-count" aria-label={`${sourceCount} 条参考素材`}>{sourceCount}</span>}
         </button>
       </div>
       {view === 'rankings' ? <div className="reference-panel card hotspot-board">
         <PlatformRankings onReferenceAdded={() => setReferenceMode(true)} />
-      </div> : <section aria-label="自媒体写作">
+      </div> : view === 'brief' ? <DailyBriefPanel /> : <section aria-label="自媒体写作">
         <div className="segmented article-writing-mode" role="group" aria-label="创作方式">
           <button type="button" aria-pressed={!referenceMode} onClick={() => setReferenceMode(false)}>直接写文章</button>
           <button type="button" aria-pressed={referenceMode} onClick={() => setReferenceMode(true)}>参考爆款创作</button>

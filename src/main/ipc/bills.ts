@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { channels } from '@shared/ipc-contract'
 import { fetchBillMail, readBillAccount, saveBillAccount } from '../bill-mail'
 import { importBill, MAX_BILL_FILE_BYTES } from '../bill-import'
-import { readBillOverview, readBillRows } from '../db/repo/bills'
+import { applyBillRules, listBillRules, readBillBudget, readBillOverview, readBillRows, removeBillRule, saveBillRule, writeBillBudget } from '../db/repo/bills'
 import { AppError, fail } from './errors'
 import { noArgs, validate } from './validation'
 
@@ -100,5 +100,37 @@ export function registerBillsIPC(): void {
   ipcMain.handle(channels.billCancelFileImport, ({ sender }, ...args: unknown[]) => {
     const [id] = validate(z.tuple([z.uuid()]), args)
     if (lockedFile?.id === id && lockedFile.owner === sender.id) lockedFile = undefined
+  })
+  const monthSchema = z.string().regex(/^\d{4}-(?:0[1-9]|1[0-2])$/)
+  ipcMain.handle(channels.billBudget, (_event, ...args: unknown[]) => {
+    const [input] = validate(z.tuple([z.object({ month: monthSchema })]), args)
+    return readBillBudget(input.month)
+  })
+  ipcMain.handle(channels.billSetBudget, (_event, ...args: unknown[]) => {
+    const [input] = validate(z.tuple([z.object({
+      month: monthSchema,
+      amountCents: z.number().int().min(0).max(10_000_000_000).nullable()
+    })]), args)
+    writeBillBudget(input.month, input.amountCents)
+  })
+  ipcMain.handle(channels.billRules, (_event, ...args: unknown[]) => {
+    validate(noArgs, args)
+    return listBillRules()
+  })
+  ipcMain.handle(channels.billSaveRule, (_event, ...args: unknown[]) => {
+    const [input] = validate(z.tuple([z.object({
+      id: z.string().min(1).max(64).optional(),
+      pattern: z.string().trim().min(1).max(80),
+      category: z.string().trim().min(1).max(40)
+    })]), args)
+    return saveBillRule(input)
+  })
+  ipcMain.handle(channels.billRemoveRule, (_event, ...args: unknown[]) => {
+    const [id] = validate(z.tuple([z.string().min(1).max(64)]), args)
+    return removeBillRule(id)
+  })
+  ipcMain.handle(channels.billApplyRules, (_event, ...args: unknown[]) => {
+    validate(noArgs, args)
+    return applyBillRules()
   })
 }

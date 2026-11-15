@@ -19,6 +19,8 @@ interface FocusState {
   toggle(): void
   reset(): void
   tick(): Promise<void>
+  /** 专注记录被改名或删除后调用：订阅 revision 的页面（专注页、工作台卡片）统一重读统计。 */
+  refresh(): void
 }
 
 export const useFocus = create<FocusState>((set, get) => ({
@@ -66,7 +68,8 @@ export const useFocus = create<FocusState>((set, get) => ({
     } finally {
       set({ finishing: false, started: false, remaining: state.minutes * 60, pausedRemaining: state.minutes * 60, revision: get().revision + 1 })
     }
-  }
+  },
+  refresh: () => set(state => ({ revision: state.revision + 1 }))
 }))
 
 export function focusClock(seconds: number): string {

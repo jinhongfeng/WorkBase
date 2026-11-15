@@ -8,6 +8,8 @@ export interface BarItem {
   /** 次要说明，如占比。 */
   note?: ReactNode
   tone?: 'accent' | 'clay' | 'iris' | 'muted'
+  /** 覆盖条形的填充色，用于与其他图（如环形占比）的切片一一对应。 */
+  color?: string
 }
 
 /** 横向排行条：无坐标轴，按最大值归一，读小占比比环形图准（借鉴 boardui Bar List Card）。 */
@@ -26,7 +28,7 @@ export function BarList({ items, max, compact = false, label }: { items: BarItem
             {item.note && <small>{item.note}</small>}
           </span>
           <span className="bar-track" aria-hidden="true">
-            <i className="bar-fill" style={{ width: `${Math.max(2, Math.min(100, (item.value / peak) * 100))}%` }} />
+            <i className="bar-fill" style={{ width: `${Math.max(2, Math.min(100, (item.value / peak) * 100))}%`, background: item.color }} />
           </span>
         </li>
       ))}

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from 'react'
-import { ArrowUp, ArrowUpRight, BookmarkPlus, Copy, Pencil, Plus, RefreshCw, Square, Sparkles, Trash2, X } from 'lucide-react'
+import { ArrowUp, ArrowUpRight, BookmarkPlus, CalendarDays, Copy, Pencil, Plus, RefreshCw, Square, Sparkles, Trash2, X } from 'lucide-react'
 import type { AIConfig, AIThread } from '@shared/types'
 import { Button } from '../../components/ui/Button'
 import { ActionPopover } from '../../components/ui/ActionPopover'
@@ -11,7 +11,7 @@ import { HeightHandle } from '../../components/ui/HeightHandle'
 import { defineModule } from '../../modules/defineModule'
 import { useNavigation } from '../../stores/navigation'
 import { markdownToHtml } from '../../lib/markdown'
-import { clamp, humanError } from '../../lib/utils'
+import { clamp, humanError, todayKey } from '../../lib/utils'
 import { useAssistant } from '../../stores/ai'
 import { ConfirmDialog, Dialog } from '../../components/ui/Dialog'
 import { PageHeader } from '../../components/ui/PageHeader'
@@ -53,6 +53,11 @@ function AssistantPage() {
   const [threadTitle, setThreadTitle] = useState('')
   const [threadQuery, setThreadQuery] = useState('')
   const [deleteTarget, setDeleteTarget] = useState<AIThread | null>(null)
+  const [reportOpen, setReportOpen] = useState(false)
+  const [reportDate, setReportDate] = useState(() => todayKey())
+  const [reportText, setReportText] = useState('')
+  const [reportBusy, setReportBusy] = useState(false)
+  const [reportError, setReportError] = useState('')
   const [menu, setMenu] = useState<{ thread: AIThread; x: number; y: number } | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const [layout, availableWidth] = usePanelLayoutWidth()
@@ -130,6 +135,39 @@ function AssistantPage() {
     }
   }
 
+  /** 今日回顾：汇总本地记录交给已配置的 AI，结果可保存为带「AI日报」标签的笔记。 */
+  const generateReport = async (date: string): Promise<void> => {
+    if (reportBusy) return
+    setReportBusy(true)
+    setReportError('')
+    try {
+      const result = await window.api.ai.dailyReport({ date })
+      setReportText(result.content)
+    } catch (error) {
+      setReportError(humanError(error))
+    } finally {
+      setReportBusy(false)
+    }
+  }
+
+  const openReport = (): void => {
+    setReportText('')
+    setReportError('')
+    setReportDate(todayKey())
+    setReportOpen(true)
+    void generateReport(todayKey())
+  }
+
+  const saveReportToNotes = async (): Promise<void> => {
+    if (!reportText.trim()) return
+    try {
+      await window.api.notes.save({ title: `${reportDate} 回顾`, content: reportText, tags: ['AI日报'], kind: 'note' })
+      window.toast.success('已保存到笔记')
+    } catch (error) {
+      window.toast.error(humanError(error))
+    }
+  }
+
   const ready = Boolean(config?.configured)
   const activeThread = threads.find(thread => thread.id === activeId)
   const term = threadQuery.trim().toLowerCase()
@@ -147,7 +185,7 @@ function AssistantPage() {
   return (
     <div className={`assistant-layout${threads.length === 0 ? ' no-threads' : ''}`} ref={layout}
       style={threads.length > 0 ? { gridTemplateColumns: `${threadsWidth}px 0 minmax(0, 1fr)` } : undefined}>
-      {threads.length > 0 && <aside className="chat-threads" id="chat-threads-panel" aria-label="会话列表"
+      {threads.length > 0 && <aside className="chat-threads workspace-sidebar" id="chat-threads-panel" aria-label="会话列表"
         onContextMenu={event => {
           const target = (event.target as HTMLElement).closest('[data-thread-id]')
           const thread = threads.find(item => item.id === target?.getAttribute('data-thread-id'))
@@ -158,7 +196,7 @@ function AssistantPage() {
         {loading && <p className="small muted" role="status">正在读取会话…</p>}
         {!loading && !visibleThreads.length && <p className="empty-state-region small muted" role="status">没有匹配的会话</p>}
         {visibleThreads.map(thread => (
-          <button className="chat-thread" key={thread.id} data-thread-id={thread.id} aria-current={activeId === thread.id ? 'true' : undefined} disabled={loading || streaming} onClick={() => void open(thread.id)} title={thread.title}>{thread.title}</button>
+          <button className="chat-thread workspace-sidebar-row" key={thread.id} data-thread-id={thread.id} aria-current={activeId === thread.id ? 'true' : undefined} disabled={loading || streaming} onClick={() => void open(thread.id)} title={thread.title}>{thread.title}</button>
         ))}
       </aside>}
       {threads.length > 0 && <PanelResizeHandle side="left" controls="chat-threads-panel" label="调整会话列表宽度"
@@ -179,6 +217,7 @@ function AssistantPage() {
           }
           actions={
             <>
+              <Button variant="ghost" className="icon" disabled={reportBusy} aria-label="生成今日回顾" title="生成今日回顾" onClick={openReport}><CalendarDays size={18} aria-hidden="true" /></Button>
               {messages.length > 0 &&
                 <Button variant="ghost" className="icon" disabled={streaming} aria-label="保存到笔记" title="保存到笔记" onClick={() => void saveToNotes()}><BookmarkPlus size={18} aria-hidden="true" /></Button>
               }
@@ -259,6 +298,27 @@ function AssistantPage() {
           <input className="input" aria-label="会话名称" maxLength={120} value={threadTitle} onChange={event => setThreadTitle(event.target.value)} data-dialog-autofocus />
           <div className="actions"><Button type="submit" disabled={!threadTitle.trim() || loading}>保存名称</Button></div>
         </form>
+      </Dialog>
+      <Dialog open={reportOpen} title="今日回顾" onClose={() => { if (!reportBusy) setReportOpen(false) }}>
+        <div className="report-stack">
+          <div className="report-toolbar">
+            <input className="input report-date" type="date" aria-label="回顾日期" value={reportDate}
+              onChange={event => { setReportDate(event.target.value); void generateReport(event.target.value) }} />
+            <Button variant="secondary" disabled={reportBusy} onClick={() => void generateReport(reportDate)}>
+              <RefreshCw size={14} />重新生成
+            </Button>
+          </div>
+          {reportBusy && <p className="small muted" role="status">正在根据本地记录生成回顾…</p>}
+          {reportError && <Alert tone="warn" title="生成失败">{reportError}</Alert>}
+          {reportText && <div className="report-body" dangerouslySetInnerHTML={{ __html: withCodeCopy(markdownToHtml(reportText)) }} />}
+          {reportText && (
+            <div className="actions">
+              <Button variant="ghost" disabled={reportBusy} onClick={() => copyMessage(reportText)}>复制</Button>
+              <Button variant="primary" disabled={reportBusy} onClick={() => void saveReportToNotes()}>保存为笔记</Button>
+            </div>
+          )}
+          <p className="input-hint">回顾以本地记录（待办、专注、习惯、写作、日记摘录与纪念记录）为上下文，通过已配置的 AI 接口生成，不会保存在会话里。</p>
+        </div>
       </Dialog>
       <ConfirmDialog open={deleteTarget !== null} title="删除会话" confirmLabel="删除会话" description={`「${deleteTarget?.title ?? ''}」及其中的消息将从本机删除。`} loading={loading} onClose={() => setDeleteTarget(null)} onConfirm={() => { if (deleteTarget) void remove(deleteTarget.id).then(() => setDeleteTarget(null)) }} />
       {menu && (() => {

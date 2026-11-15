@@ -1,18 +1,13 @@
-.daily-briefs-source {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px 12px;
-  margin-bottom: 12px;
-  color: var(--text-3);
-  font-size: 12px;
-}
-
-.daily-briefs-list {
+.daily-brief-board {
   display: grid;
   gap: 12px;
-  margin-top: 12px;
+}
+
+.daily-brief-head { justify-content: space-between; }
+
+.daily-brief-list {
+  display: grid;
+  gap: 12px;
 }
 
 .daily-brief-summary {

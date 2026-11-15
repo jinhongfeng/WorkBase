@@ -144,8 +144,8 @@
 }
 .todos-page .list-row .check:hover .todo-check-mark { border-color: var(--accent); }
 .todos-page .list-row .check:active .todo-check-mark { transform: scale(.9); }
-.todos-page .todo-task-card[data-done="true"] { background: var(--surface-2); }
-.todos-page .todo-task-card[data-done="true"]:is(:hover, :focus-within) { background: var(--surface); }
+.todos-page .todo-task-card[data-done="true"] { background: var(--workspace-panel, var(--surface-2)); }
+.todos-page .todo-task-card[data-done="true"]:is(:hover, :focus-within) { background: var(--workspace-panel, var(--surface)); }
 .todos-page .todo-task-card[data-done="true"] .todo-check-mark {
   border-color: var(--accent);
   background: var(--accent-soft);
@@ -158,6 +158,22 @@
 }
 .todos-page .todo-task-card[data-done="true"] .todo-priority::before { background: var(--text-3); }
 .todos-page .todo-clear:hover { background: var(--danger-soft); color: var(--danger); }
+
+/* 分组内拖拽排序：手柄悬停出现，拖动中的卡片半透明，插入位置用上下沿线提示。 */
+.todos-page .todo-drag-handle {
+  width: 26px;
+  height: 34px;
+  flex-shrink: 0;
+  margin-inline-start: -6px;
+  color: var(--text-3);
+  cursor: grab;
+  opacity: 0;
+}
+.todos-page .todo-task-card:is(:hover, :focus-within) .todo-drag-handle { opacity: 1; }
+.todos-page .todo-drag-handle:active { cursor: grabbing; }
+.todos-page .todo-task-card[data-dragging] { opacity: .4; }
+.todos-page .todo-task-card[data-drop-above] { box-shadow: 0 -2px 0 0 var(--accent); }
+.todos-page .todo-task-card[data-drop-below] { box-shadow: 0 2px 0 0 var(--accent); }
 
 html[data-workspace-style="paper"] .todos-page .todo-group-head {
   margin-bottom: 8px;

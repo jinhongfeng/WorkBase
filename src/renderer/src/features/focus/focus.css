@@ -89,7 +89,7 @@
 .focus-page .focus-recent { display: grid; grid-template-columns: minmax(0, 1fr); margin: 0; padding: 0; list-style: none; }
 .focus-page .focus-recent li {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 4px 0;
@@ -98,6 +98,10 @@
 .focus-page .focus-recent li:last-child { border-bottom: 0; padding-bottom: 0; }
 .focus-page .focus-recent-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
 .focus-page .focus-recent-meta { flex-shrink: 0; color: var(--text-2); font-size: 11.5px; font-variant-numeric: tabular-nums; }
+/* 行尾的重命名与删除动作默认隐藏，悬停或键盘聚焦行时出现。 */
+.focus-page .focus-recent-actions { flex-shrink: 0; display: flex; gap: 2px; opacity: 0; transition: opacity var(--dur-2) var(--ease-ui); }
+.focus-page .focus-recent li:hover .focus-recent-actions,
+.focus-page .focus-recent li:focus-within .focus-recent-actions { opacity: 1; }
 .focus-page .focus-week-empty { display: grid; place-content: safe center; margin: 0; text-align: center; }
 .focus-page :is(.focus-week, .focus-week-empty) { block-size: clamp(88px, 15dvh, 132px); }
 .focus-page .focus-week {

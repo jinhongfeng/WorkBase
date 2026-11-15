@@ -1,0 +1,70 @@
+/* 剪贴板历史：搜索工具栏 + 文本条目卡片列表。 */
+.clipboard-page .page-head { align-items: baseline; flex-wrap: wrap; gap: 8px 24px; margin-bottom: 20px; }
+.clipboard-capture-state { color: var(--text-2); font-size: 13px; }
+.clipboard-capture-state[data-on="true"] { color: var(--success); }
+
+.clipboard-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.clipboard-toolbar .search-field { flex: 1; max-width: 420px; }
+.clipboard-status { display: flex; gap: 8px; align-items: center; min-height: 40px; color: var(--text-2); font-size: 13px; }
+
+.clipboard-list {
+  display: grid;
+  gap: 8px;
+}
+.clipboard-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  cursor: copy;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+}
+.clipboard-row[data-pinned] { border-color: var(--accent); }
+.clipboard-row:hover { background: var(--surface-2); }
+.clipboard-content {
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
+}
+.clipboard-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.clipboard-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-3);
+  font-size: 12px;
+}
+.clipboard-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-inline-start: auto;
+  opacity: 0;
+  transition: opacity var(--dur-1) var(--ease-ui);
+}
+.clipboard-row:hover .clipboard-actions,
+.clipboard-row:focus-within .clipboard-actions { opacity: 1; }
+.clipboard-copied {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--success);
+  font-size: 12px;
+}

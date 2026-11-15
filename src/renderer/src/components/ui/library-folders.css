@@ -28,7 +28,6 @@
   text-align: left;
 }
 
-.library-folder-row:hover { background: var(--surface-2); }
 .library-folder-row svg { flex: none; color: var(--text-2); }
 .library-folder-chevron { transition: transform var(--dur-2) var(--ease-ui); }
 .library-folder-row[aria-expanded="true"] .library-folder-chevron { transform: rotate(90deg); }

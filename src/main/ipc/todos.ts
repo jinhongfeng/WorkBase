@@ -2,7 +2,7 @@ import { ipcMain } from 'electron'
 import { z } from 'zod'
 import type { TodoInput } from '@shared/types'
 import { channels } from '@shared/ipc-contract'
-import { clearDoneTodos, listTodos, removeTodo, saveTodo, todoStats, toggleTodo } from '../db/repo/todos'
+import { clearDoneTodos, listTodos, removeTodo, reorderTodos, saveTodo, todoStats, toggleTodo } from '../db/repo/todos'
 import { validate } from './validation'
 
 const saveSchema = z.object({
@@ -32,6 +32,10 @@ export function registerTodosIPC(): void {
   ipcMain.handle(channels.todosRemove, (_event, ...args: unknown[]) => {
     const [id] = validate(idSchema, args)
     removeTodo(id)
+  })
+  ipcMain.handle(channels.todosReorder, (_event, ...args: unknown[]) => {
+    const [ids] = validate(z.tuple([z.array(z.string().min(1).max(64)).max(500)]), args)
+    reorderTodos([...new Set(ids)])
   })
   ipcMain.handle(channels.todosClearDone, () => clearDoneTodos())
 }

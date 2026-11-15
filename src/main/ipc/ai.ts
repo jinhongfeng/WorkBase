@@ -3,8 +3,10 @@ import { z } from 'zod'
 import type { AIConfigInput, ChatRequest } from '@shared/types'
 import { channels } from '@shared/ipc-contract'
 import { generateArticle } from '../ai/article-writing'
+import { generateDailyReport } from '../ai/daily-report'
 import { chatStream, readAiConfig, saveAiConfig, testConnection } from '../ai/client'
 import * as repository from '../db/repo/ai'
+import { dayKey } from '../db/repo/activity'
 import { AppError, fail } from './errors'
 import { noArgs, validate } from './validation'
 
@@ -54,6 +56,12 @@ export function registerAiIPC(): void {
       topic: z.string().trim().max(120)
     })]), args)
     return generateArticle(input)
+  })
+  ipcMain.handle(channels.aiDailyReport, (_event, ...args: unknown[]) => {
+    const [input] = validate(z.tuple([z.object({
+      date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional()
+    })]), args)
+    return generateDailyReport(input.date ?? dayKey(new Date()))
   })
   ipcMain.handle(channels.aiThreadsList, (_event, ...args: unknown[]) => {
     validate(noArgs, args)

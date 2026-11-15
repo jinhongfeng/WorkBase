@@ -17,7 +17,7 @@
 .focus-room:has(> :is(.wallpaper, .focus-ambience-canvas)) {
   --room-wallpaper-tint: color-mix(in srgb, var(--bg) var(--wp-chrome-tint), transparent);
   & .focus-room-quiet { align-content: end; }
-  & :is(.focus-room-quiet h1, .focus-room-library, .focus-room-reader, .focus-room-view-header, .focus-room-readout, .focus-room-control.button:not(:hover)) {
+  & :is(.focus-room-quiet h1, .focus-room-library, .focus-room-reader, .focus-room-view-header, .focus-room-readout, .focus-room-back.button:not(:hover), .focus-room-control.button:not(:hover)) {
     background: var(--room-wallpaper-tint);
     border-radius: var(--r-sm);
   }
@@ -25,7 +25,23 @@
   & .focus-room-quiet h1 { padding: 4px 12px; }
   & .focus-room-view-header { width: fit-content; max-width: 100%; }
 }
-.focus-room-drag { -webkit-app-region: drag; }
+/* 顶栏：左上角返回按钮 + 其余宽度留给窗口拖动区。 */
+.focus-room-top {
+  display: flex;
+  align-items: center;
+  padding-inline: var(--room-gutter);
+}
+.focus-room-top .focus-room-drag { flex: 1; align-self: stretch; -webkit-app-region: drag; }
+.focus-room-back.button {
+  -webkit-app-region: no-drag;
+  min-height: 32px;
+  padding-inline: 10px;
+  color: var(--text-2);
+  font-size: 13px;
+}
+.focus-room-back.button:hover { color: var(--text); }
+/* 全屏收起标题栏行（高度为 0），同时让返回按钮不参与绘制与焦点遍历。 */
+.focus-room:fullscreen .focus-room-top { visibility: hidden; }
 .focus-room-readout { display: grid; gap: 6px; }
 .focus-room-session { display: flex; align-items: center; color: var(--text-2); font-size: 12px; }
 .focus-room-timer + span:not(:empty) { margin-inline-start: 8px; }

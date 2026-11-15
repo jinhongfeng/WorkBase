@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState, type MouseEvent } from 'react'
 import { ArrowLeft, Image, Maximize, Minimize, Pause, Play, Settings2, SlidersHorizontal, Sparkles } from 'lucide-react'
 import { Wallpaper } from '../../components/layout/Wallpaper'
 import { Button } from '../../components/ui/Button'
@@ -61,6 +61,7 @@ export function FocusRoom() {
   const controls = useRef<HTMLDivElement>(null)
   const controlsId = useId()
   const leave = useFocus(state => state.leave)
+  const switchingWallpaper = useRef(false)
 
   useEffect(() => {
     let active = true
@@ -124,12 +125,40 @@ export function FocusRoom() {
     }
   }
 
-  return <main className="focus-room" data-theme="dark" ref={room} tabIndex={-1} aria-label="沉浸空间">
+  // 右键在当前背景的已有壁纸中随机切换：单独设置与沿用模式分别作用于
+  // 沉浸清单与工作台当前壁纸。弹窗与控制面板内部不响应，切换期间不并发。
+  function randomizeWallpaper(event: MouseEvent): void {
+    event.preventDefault()
+    if (backgroundMode === 'solid' || switchingWallpaper.current) return
+    if ((event.target as HTMLElement).closest('dialog, [popover]')) return
+    const store = backgroundMode === 'custom' ? useImmersiveWallpaper : useWallpaper
+    const { config, setActive } = store.getState()
+    if (config.items.length < 2) {
+      window.toast.error('已有壁纸不足两张，无法随机切换。')
+      return
+    }
+    const candidates = config.items.filter(item => item.id !== config.activeId)
+    if (!candidates.length) return
+    const next = candidates[Math.floor(Math.random() * candidates.length)]
+    switchingWallpaper.current = true
+    void setActive(next.id)
+      .then(() => window.toast.success(`已随机切换壁纸「${next.label}」`))
+      .catch(error => window.toast.error(humanError(error)))
+      .finally(() => { switchingWallpaper.current = false })
+  }
+
+  return <main className="focus-room" data-theme="dark" ref={room} tabIndex={-1} aria-label="沉浸空间"
+    onContextMenu={randomizeWallpaper}>
     {backgroundMode !== 'solid' && <Wallpaper key={backgroundMode} immersive clear={backgroundClear}
       useStore={backgroundMode === 'custom' ? useImmersiveWallpaper : useWallpaper} />}
     <FocusAmbience open={ambienceOpen} overlay={hasWallpaper} settings={ambience}
       onChange={saveAmbience} onClose={() => setAmbienceOpen(false)} />
-    <div className="focus-room-drag" aria-hidden="true" />
+    <header className="focus-room-top">
+      <Button variant="ghost" className="focus-room-back" title="保留当前计时" onClick={leave}>
+        <ArrowLeft size={16} />返回工作台
+      </Button>
+      <div className="focus-room-drag" aria-hidden="true" />
+    </header>
     <div className="focus-room-stage" key={scene}><ErrorBoundary>
       {scene === 'study' && <FocusStudy />}
       {scene === 'study-notes' && <FocusNotes onBack={() => switchScene('study')} />}

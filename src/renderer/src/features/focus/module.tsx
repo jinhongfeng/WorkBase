@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Flame, Minus, Play, Plus, RotateCcw, Timer, TrendingUp } from 'lucide-react'
-import type { FocusDay, FocusStats } from '@shared/types'
+import { Flame, Minus, Pencil, Play, Plus, RotateCcw, Timer, Trash2, TrendingUp } from 'lucide-react'
+import type { FocusDay, FocusSession, FocusStats } from '@shared/types'
 import { defineModule } from '../../modules/defineModule'
 import { useNavigation } from '../../stores/navigation'
 import { PageHeader } from '../../components/ui/PageHeader'
 import { CircularMeter } from '../../components/ui/CircularMeter'
 import { Meter } from '../../components/ui/Meter'
 import { StatCard } from '../../components/ui/StatCard'
+import { Button } from '../../components/ui/Button'
+import { ConfirmDialog, Dialog } from '../../components/ui/Dialog'
 import { LeafSprig, WaveLines } from '../dashboard/illustrations'
 import { clamp, formatDate, humanError, todayKey } from '../../lib/utils'
 import { focusClock, useFocus } from '../../stores/focus'
@@ -73,10 +75,14 @@ function FocusYearGrid({ year }: { year: FocusDay[] }) {
 }
 
 function FocusPage() {
-  const { minutes, remaining, running, started, label, finishing, revision, choose, setLabel, enter, reset } = useFocus()
+  const { minutes, remaining, running, started, label, finishing, revision, choose, setLabel, enter, reset, refresh } = useFocus()
   const [stats, setStats] = useState<FocusStats>(EMPTY)
   const [target, setTarget] = useState(DEFAULT_TARGET_MINUTES)
   const [targetDraft, setTargetDraft] = useState(String(DEFAULT_TARGET_MINUTES))
+  const [renaming, setRenaming] = useState<FocusSession | null>(null)
+  const [renameDraft, setRenameDraft] = useState('')
+  const [deleting, setDeleting] = useState<FocusSession | null>(null)
+  const [mutating, setMutating] = useState(false)
 
   const load = useCallback(async () => {
     try { setStats(await window.api.focus.stats()) }
@@ -107,6 +113,26 @@ function FocusPage() {
       return
     }
     saveTarget(value)
+  }
+
+  // 专注记录改名或删除后统一走 store 的 refresh：专注页与工作台「专注趋势」卡片都会重读统计。
+  const commitRename = (): void => {
+    if (!renaming || mutating) return
+    const next = renameDraft.trim().slice(0, 80)
+    if (next === renaming.label) { setRenaming(null); return }
+    setMutating(true)
+    window.api.focus.rename({ id: renaming.id, label: next })
+      .then(() => { setRenaming(null); refresh() })
+      .catch(error => window.toast.error(humanError(error)))
+      .finally(() => setMutating(false))
+  }
+  const removeRecent = (): void => {
+    if (!deleting || mutating) return
+    setMutating(true)
+    window.api.focus.remove(deleting.id)
+      .then(() => { setDeleting(null); refresh() })
+      .catch(error => window.toast.error(humanError(error)))
+      .finally(() => setMutating(false))
   }
 
   const progress = 1 - remaining / (minutes * 60)
@@ -221,16 +247,36 @@ function FocusPage() {
           </div>
           <div className="card-body">
             {stats.recent.length ? <ul className="focus-recent">
-              {stats.recent.map(item => (
-                <li key={item.id}>
-                  <span className="focus-recent-label" title={item.label || undefined}>{item.label || '未命名专注'}</span>
-                  <span className="focus-recent-meta">{item.minutes} 分钟 · {formatDate(item.startedAt, 'M月d日 HH:mm')}</span>
-                </li>
-              ))}
+              {stats.recent.map(item => {
+                const name = item.label || '未命名专注'
+                return (
+                  <li key={item.id}>
+                    <span className="focus-recent-label" title={item.label || undefined}>{name}</span>
+                    <span className="focus-recent-meta">{item.minutes} 分钟 · {formatDate(item.startedAt, 'M月d日 HH:mm')}</span>
+                    <span className="focus-recent-actions">
+                      <button type="button" className="icon-action" title="重命名专注" aria-label={`重命名「${name}」`}
+                        onClick={() => { setRenaming(item); setRenameDraft(item.label) }}><Pencil size={12} aria-hidden="true" /></button>
+                      <button type="button" className="icon-action danger" title="删除专注记录" aria-label={`删除「${name}」的记录`}
+                        onClick={() => setDeleting(item)}><Trash2 size={12} aria-hidden="true" /></button>
+                    </span>
+                  </li>
+                )
+              })}
             </ul> : <p className="small muted">最近没有专注记录。</p>}
           </div>
         </section>
       </div>
+
+      <Dialog open={renaming !== null} title="重命名专注" onClose={() => { if (!mutating) setRenaming(null) }}>
+        <form onSubmit={event => { event.preventDefault(); commitRename() }}>
+          <input className="input" aria-label="专注主题" placeholder="留空保存为未命名专注" maxLength={80}
+            value={renameDraft} onChange={event => setRenameDraft(event.target.value)} data-dialog-autofocus />
+          <div className="actions"><Button type="submit" loading={mutating}>保存主题</Button></div>
+        </form>
+      </Dialog>
+      <ConfirmDialog open={deleting !== null} title="删除专注记录？" confirmLabel="删除记录"
+        description={`「${deleting?.label || '未命名专注'}」（${deleting?.minutes ?? 0} 分钟 · ${deleting ? formatDate(deleting.startedAt, 'M月d日 HH:mm') : ''}）将从本机删除，统计随之减少。`}
+        loading={mutating} onClose={() => { if (!mutating) setDeleting(null) }} onConfirm={removeRecent} />
     </div>
   )
 }

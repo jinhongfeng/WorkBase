@@ -1,0 +1,85 @@
+/* 统计页：年度汇总 + 月度图表两列网格。 */
+.stats-page .page-head { align-items: baseline; flex-wrap: wrap; gap: 8px 24px; margin-bottom: 20px; }
+.stats-since { color: var(--text-2); font-size: 13px; }
+.stats-year-switch { display: inline-flex; align-items: center; gap: 4px; }
+.stats-year { min-width: 52px; text-align: center; font-family: var(--font-mono, 'JetBrains Mono'); font-size: 14px; }
+.stats-status { display: flex; gap: 8px; align-items: center; min-height: 40px; color: var(--text-2); font-size: 13px; }
+
+.stats-summary {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+@media (max-width: 900px) { .stats-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.stats-summary-item {
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  background: var(--workspace-panel, var(--surface));
+}
+.stats-summary-value { font-size: 17px; font-weight: 650; color: var(--text); }
+.stats-summary-label { color: var(--text-3); font-size: 12px; }
+
+.stats-charts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+@media (max-width: 900px) { .stats-charts { grid-template-columns: minmax(0, 1fr); } }
+.stats-chart { border: 1px solid var(--border-strong); border-radius: var(--r-md); overflow: hidden; }
+.stats-chart .card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px 0;
+}
+.stats-chart-body { padding: 8px 14px 12px; }
+
+/* 一周节奏雷达：自绘图例与原始值提示。 */
+.stats-radar-legend { display: inline-flex; align-items: center; gap: 10px; color: var(--text-3); font-size: 11px; }
+.stats-radar-legend span { display: inline-flex; align-items: center; gap: 4px; }
+.stats-radar-legend i { width: 8px; height: 8px; border-radius: 2px; }
+.stats-radar-note { margin: 4px 0 0; color: var(--text-3); font-size: 11px; }
+.stats-week-tip {
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--text);
+}
+.stats-week-tip strong { font-size: 12px; }
+
+/* 年度活跃格：12 行（月）× 31 列（日），按活跃类别数分四级。 */
+.stats-heat { display: grid; gap: 3px; }
+.stats-heat-row { display: grid; grid-template-columns: 28px minmax(0, 1fr); align-items: center; gap: 6px; }
+.stats-heat-month { color: var(--text-3); font-size: 10px; line-height: 1; }
+.stats-heat-cells { display: grid; grid-template-columns: repeat(31, minmax(0, 1fr)); gap: 2px; }
+.stats-heat-cell { display: block; width: 100%; aspect-ratio: 1; border-radius: 2px; background: var(--surface-2); }
+.stats-heat-cell.lvl-off { background: transparent; box-shadow: inset 0 0 0 1px var(--border); opacity: 0.35; }
+.stats-heat-cell.lvl-1 { background: color-mix(in srgb, var(--accent) 28%, transparent); }
+.stats-heat-cell.lvl-2 { background: color-mix(in srgb, var(--accent) 48%, transparent); }
+.stats-heat-cell.lvl-3 { background: color-mix(in srgb, var(--accent) 68%, transparent); }
+.stats-heat-cell.lvl-4 { background: color-mix(in srgb, var(--accent) 92%, transparent); }
+.stats-heat-tip { min-height: 18px; margin: 8px 0 0; color: var(--text-2); font-size: 12px; }
+.stats-heat-legend { display: inline-flex; align-items: center; gap: 3px; color: var(--text-3); }
+.stats-heat-legend .stats-heat-cell { width: 10px; flex: 0 0 10px; }
+
+/* 页面停留：左排行右趋势，跨两列。 */
+.stats-page-time { grid-column: 1 / -1; container-type: inline-size; }
+.stats-page-time-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 16px 24px; }
+.stats-page-time-body > .bar-list { align-self: start; }
+.stats-page-time-body .bar-list.compact .bar-row { padding-block: 4px; }
+.stats-page-time-body .bar-list.compact .bar-track { margin-top: 0; }
+.stats-page-time-monthly { display: grid; grid-template-rows: auto minmax(200px, 1fr); }
+.stats-page-time-sub { color: var(--text-3); font-size: 12px; }
+@container (max-width: 700px) {
+  .stats-page-time-body { grid-template-columns: minmax(0, 1fr); }
+}
+.stats-page-time-empty { grid-column: 1 / -1; padding: 24px 0; color: var(--text-3); font-size: 13px; text-align: center; }

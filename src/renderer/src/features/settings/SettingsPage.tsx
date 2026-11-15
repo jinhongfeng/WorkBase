@@ -87,6 +87,7 @@ export function SettingsPage() {
   const [migrateTarget, setMigrateTarget] = useState<'choose' | 'default' | null>(null)
   const [loginItem, setLoginItemState] = useState(false)
   const [loginBusy, setLoginBusy] = useState(false)
+  const [notifyFlags, setNotifyFlags] = useState({ todos: true, habits: true, memories: true })
   const contentRef = useRef<HTMLDivElement>(null)
   const shortcutsMap = useShortcuts(state => state.map)
 
@@ -110,6 +111,13 @@ export function SettingsPage() {
     void loadStorage()
     void window.api.app.getVersion().then(setVersion).catch(() => undefined)
     void window.api.app.getLoginItem().then(setLoginItemState).catch(() => undefined)
+    void window.api.settings.getAll().then(settings => {
+      setNotifyFlags({
+        todos: settings['notify.todos'] !== '0',
+        habits: settings['notify.habits'] !== '0',
+        memories: settings['notify.memories'] !== '0'
+      })
+    }).catch(() => undefined)
     void window.api.ai.config().then(value => {
       setConfig(value)
       setBaseUrl(value.baseUrl)
@@ -181,6 +189,16 @@ export function SettingsPage() {
       window.toast.error(humanError(error))
     } finally {
       setLoginBusy(false)
+    }
+  }
+
+  /** 本地提醒开关直接写 settings，主进程巡检每分钟读取一次，即时生效。 */
+  const setNotifyFlag = async (key: 'todos' | 'habits' | 'memories', enabled: boolean): Promise<void> => {
+    setNotifyFlags(current => ({ ...current, [key]: enabled }))
+    try { await window.api.settings.set(`notify.${key}`, enabled ? '1' : '0') }
+    catch {
+      setNotifyFlags(current => ({ ...current, [key]: !enabled }))
+      window.toast.error('未能保存提醒设置，请重试')
     }
   }
 
@@ -389,6 +407,25 @@ export function SettingsPage() {
                     开机自动启动 WorkBase
                   </label>
                 </div>
+                <div className="preferences-group preferences-notify">
+                  <h3>本地提醒</h3>
+                  <p className="input-hint">通过系统通知提醒，均为本地定时巡检，不联网。</p>
+                  <label className="row preferences-login-row">
+                    <input type="checkbox" checked={notifyFlags.todos}
+                      onChange={event => void setNotifyFlag('todos', event.target.checked)} />
+                    待办到期提醒（每日一次）
+                  </label>
+                  <label className="row preferences-login-row">
+                    <input type="checkbox" checked={notifyFlags.habits}
+                      onChange={event => void setNotifyFlag('habits', event.target.checked)} />
+                    习惯晚间提醒（20:00–22:00）
+                  </label>
+                  <label className="row preferences-login-row">
+                    <input type="checkbox" checked={notifyFlags.memories}
+                      onChange={event => void setNotifyFlag('memories', event.target.checked)} />
+                    纪念日提醒（当天有记录时）
+                  </label>
+                </div>
                 <dl className="preferences-shortcuts">
                   {[commandItem, ...moduleShortcutItems].map(item => (
                     <ShortcutRow key={item.id} item={item}
@@ -397,6 +434,7 @@ export function SettingsPage() {
                   <div><dt>首页 / 常用功能</dt><dd><span className="kbd-group"><kbd>Ctrl</kbd><kbd>1</kbd>–<kbd>9</kbd></span></dd></div>
                   <div><dt>智能助手</dt><dd><span className="kbd-group"><kbd>Ctrl</kbd><kbd>0</kbd></span></dd></div>
                   <div><dt>保存笔记</dt><dd><span className="kbd-group"><kbd>Ctrl</kbd><kbd>S</kbd></span></dd></div>
+                  <div><dt>全局速记浮窗</dt><dd><span className="kbd-group"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>Space</kbd></span></dd></div>
                   <div><dt>关闭浮层</dt><dd><span className="kbd-group"><kbd>Esc</kbd></span></dd></div>
                 </dl>
                 <p className="input-hint">Ctrl + 1–9 / 0 按常用顺序跳转，Ctrl + S 与 Esc 保持固定。</p>

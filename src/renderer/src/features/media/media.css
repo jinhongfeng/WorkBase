@@ -20,7 +20,6 @@
   padding: 0 0 56px;
   border: 1px solid var(--border-strong);
   border-radius: var(--r-lg);
-  background: var(--surface);
   color: var(--text);
   text-align: left;
   cursor: pointer;
@@ -34,7 +33,7 @@
   flex: 1;
   width: 100%;
   aspect-ratio: 4 / 3;
-  background: var(--accent-soft);
+  background: var(--workspace-panel, var(--accent-soft));
   color: var(--accent);
 }
 .media-group-cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
@@ -71,7 +70,7 @@
 .media-selection-actions { margin-inline-start: auto; display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
 .media-selection-actions > span { color: var(--text-2); font-size: 13px; }
 .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 216px), 1fr)); gap: 20px; }
-.media-card { min-width: 0; position: relative; border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; background: var(--surface); transition: border-color var(--dur-2) var(--ease-ui), box-shadow var(--dur-2) var(--ease-ui), transform var(--dur-2) var(--ease-ui); }
+.media-card { min-width: 0; position: relative; border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; background: var(--workspace-panel, var(--surface)); transition: border-color var(--dur-2) var(--ease-ui), box-shadow var(--dur-2) var(--ease-ui), transform var(--dur-2) var(--ease-ui); }
 .media-card:hover, .media-card:focus-within { border-color: var(--border-strong); box-shadow: var(--shadow-2); transform: translateY(-1px); }
 .media-card-open { width: 100%; height: 100%; display: block; padding: 0; border: 0; background: transparent; color: inherit; text-align: left; cursor: pointer; }
 .media-card-open:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }

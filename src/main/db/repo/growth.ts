@@ -95,6 +95,17 @@ export function addFocusSession(minutes: number, label: string): FocusStats {
   return focusStats()
 }
 
+/** 重命名一轮专注的主题；清空表示回到「未命名专注」。 */
+export function renameFocusSession(id: string, label: string): FocusStats {
+  getDatabase().prepare('UPDATE focus_sessions SET label = ? WHERE id = ?').run(label, id)
+  return focusStats()
+}
+
+export function removeFocusSession(id: string): FocusStats {
+  getDatabase().prepare('DELETE FROM focus_sessions WHERE id = ?').run(id)
+  return focusStats()
+}
+
 export function focusStats(): FocusStats {
   const db = getDatabase()
   const days: FocusStats['days'] = []

@@ -9,6 +9,9 @@
 }
 .preferences-shell {
   --preferences-header-height: 64px;
+  --preferences-surface: var(--surface-solid, var(--surface));
+  --workspace-panel: var(--preferences-surface);
+  --workspace-toolbar: var(--preferences-surface);
   flex: 1;
   min-height: 0;
   display: grid;
@@ -16,7 +19,7 @@
   overflow: hidden;
   border: 1px solid var(--border-strong);
   border-radius: var(--r-lg);
-  background: var(--surface);
+  background: var(--preferences-surface);
 }
 .preferences-shell > .page-head {
   position: sticky;
@@ -28,7 +31,7 @@
   padding: 0 24px;
   border-bottom: 1px solid var(--border-strong);
   border-radius: var(--r-lg) var(--r-lg) 0 0;
-  background: var(--surface);
+  background: var(--preferences-surface);
 }
 .preferences-shell > .page-head h1 { font-size: 22px; }
 .preferences-layout {
@@ -37,7 +40,6 @@
   grid-template-rows: minmax(0, 1fr);
   min-height: 0;
   border-radius: 0 0 var(--r-lg) var(--r-lg);
-  background: var(--surface-2);
 }
 /* 导航列随布局高度拉伸，行必须靠顶排列，否则 4 个入口会被均分到整列高度。 */
 .preferences-nav {
@@ -45,6 +47,7 @@
   align-content: start;
   gap: 4px;
   padding: 16px 12px;
+  background: var(--preferences-surface);
 }
 .preferences-nav button {
   display: flex;
@@ -68,7 +71,7 @@
   padding: 24px 28px 20px;
   border-inline-start: 1px solid var(--border-strong);
   border-radius: 0 0 var(--r-lg) 0;
-  background: var(--surface);
+  background: var(--preferences-surface);
 }
 .preferences-section > header { margin-bottom: 20px; }
 .preferences-section h2 { font-size: 18px; font-weight: 650; line-height: 1.4; }

@@ -18,13 +18,12 @@
   padding: 12px;
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
-  background: var(--workspace-panel, var(--surface-2));
 }
 .memory-archive h2 { display: flex; align-items: center; gap: 8px; margin: 0 8px 8px; font-size: 14px; font-weight: 600; }
 .memory-archive h2 svg { color: var(--text-2); }
 .memory-archive ul { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
 .memory-archive .button { width: 100%; justify-content: space-between; padding-inline: 8px; }
-.memory-archive .button[aria-pressed='true'] { color: var(--accent); background: var(--accent-soft); }
+.memory-archive .button[aria-pressed='true'] { color: var(--text); }
 .memory-archive .button > span { font-size: 12px; font-variant-numeric: tabular-nums; }
 .memory-count-unit { font-size: 11px; }
 .memory-year + .memory-year { margin-top: 32px; }
@@ -91,7 +90,7 @@
   padding: 12px 16px;
   border: 1px solid var(--border);
   border-radius: var(--r-md);
-  background: var(--surface);
+  background: var(--workspace-panel, var(--surface));
   animation: memory-body-in var(--dur-2) var(--ease-ui) both;
   transition: box-shadow var(--dur-2) var(--ease-ui), border-color var(--dur-2) var(--ease-ui);
 }

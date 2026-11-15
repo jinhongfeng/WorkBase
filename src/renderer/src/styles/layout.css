@@ -17,12 +17,16 @@ body:has(.wallpaper--workspace:not([data-clear="true"])) :is(.titlebar, .sidebar
 body:has(.wallpaper--workspace[data-clear="true"]) :is(.titlebar, .sidebar)::before {
   background: var(--wp-sidebar-clear-background);
 }
-/* 页面共用一层可读性底色，功能页只为列表和工具栏补充轻量分区。
-   不覆盖 surface，保证输入框、内容卡片和弹窗仍有完整底色。 */
+/* 正文沿用工作台底色，卡片、列表和工具栏只补充轻量分区。 */
 body:has(.wallpaper--workspace) .main-content {
   --workspace-canvas: transparent;
   --workspace-panel: color-mix(in srgb, var(--surface-2) var(--wp-panel-tint), transparent);
   --workspace-toolbar: color-mix(in srgb, var(--surface) var(--wp-toolbar-tint), transparent);
+}
+/* 浮层在工作台之外显示，内部卡片不叠加壁纸分区色。 */
+.main-content :is(dialog, [popover]) {
+  --workspace-panel: var(--surface);
+  --workspace-toolbar: var(--surface);
 }
 body:has(.wallpaper--workspace:not([data-clear="true"])) .main-content {
   background:

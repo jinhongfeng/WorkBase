@@ -215,7 +215,7 @@ export function LibraryFolderList<T extends FolderItem>({
           const open = expanded[key] ?? (filtering && Boolean(group))
           const Icon = open ? FolderOpen : Folder
           return <div key={folder.id} className="library-folder">
-            <button type="button" className="library-folder-row" aria-expanded={open} title={folder.name}
+            <button type="button" className="library-folder-row workspace-sidebar-row" aria-expanded={open} title={folder.name}
               onClick={() => setExpanded(previous => ({ ...previous, [key]: !open }))}
               onContextMenu={event => openMenu(event, { kind: 'folder', folder })}
               {...dropProps(folder.id)}>

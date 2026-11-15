@@ -191,7 +191,7 @@
   min-width: 0;
   border-radius: var(--r-lg);
   padding: 18px 20px;
-  background: var(--surface);
+  background: var(--workspace-panel, var(--surface));
   box-shadow: var(--shadow-1);
 }
 
@@ -470,7 +470,7 @@ button.home-heat-cell:hover, button.home-heat-cell:focus-visible { outline: 1px 
   gap: 12px;
   padding: 12px 16px;
   border-radius: var(--r-lg);
-  background: var(--surface);
+  background: var(--workspace-panel, var(--surface));
   box-shadow: var(--shadow-1);
 }
 .home-favorites-editor > .search-field { max-width: 320px; }
@@ -595,7 +595,7 @@ button.home-heat-cell:hover, button.home-heat-cell:focus-visible { outline: 1px 
   padding: 14px 16px;
   border: 1px dashed var(--border-strong);
   border-radius: var(--r-lg);
-  background: var(--surface);
+  background: var(--workspace-panel, var(--surface));
 }
 
 .home-card-pool-list {

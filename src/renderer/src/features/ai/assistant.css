@@ -146,8 +146,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.chat-thread:hover { background: var(--surface-2); }
-.chat-thread[aria-current="true"] { background: var(--accent-soft); color: var(--accent); }
+.chat-thread[aria-current="true"] { color: var(--text); }
 .chat-shell { min-width: 0; }
 /* 会话列表右键菜单：fixed 定位由组件按指针位置与视口边界写入。 */
 .chat-thread-menu {
@@ -200,3 +199,21 @@
 }
 .md-code:is(:hover, :focus-within) .md-code-copy { opacity: 1; }
 .md-code .md-code-copy:hover { color: var(--text); border-color: var(--accent); }
+
+/* 今日回顾弹窗：日期 + 重新生成 + Markdown 正文 + 保存动作。 */
+.report-stack { display: grid; gap: 12px; }
+.report-toolbar { display: flex; align-items: center; gap: 8px; }
+.report-toolbar .report-date { width: 150px; }
+.report-body {
+  max-height: 46vh;
+  overflow: auto;
+  padding: 12px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+.report-body p { margin: 0 0 .6em; }
+.report-body :is(h1, h2, h3, h4) { margin: .8em 0 .4em; font-size: 14px; }
+.report-body ul { margin: 0; padding-inline-start: 1.2em; }

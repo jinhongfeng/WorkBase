@@ -52,6 +52,10 @@ const api: WorkBaseAPI = {
     clear: scope => ipcRenderer.invoke(channels.wallpaperClear, scope)
   },
   activity: { year: input => ipcRenderer.invoke(channels.activityYear, input) },
+  pageTime: {
+    track: input => ipcRenderer.invoke(channels.pageTimeTrack, input),
+    stats: year => ipcRenderer.invoke(channels.pageTimeStats, year)
+  },
   bills: {
     account: () => ipcRenderer.invoke(channels.billAccount),
     saveAccount: input => ipcRenderer.invoke(channels.billSaveAccount, input),
@@ -60,7 +64,13 @@ const api: WorkBaseAPI = {
     cancelFileImport: id => ipcRenderer.invoke(channels.billCancelFileImport, id),
     fetchFromMail: input => ipcRenderer.invoke(channels.billFetchMail, input),
     overview: input => ipcRenderer.invoke(channels.billOverview, input),
-    rows: input => ipcRenderer.invoke(channels.billRows, input)
+    rows: input => ipcRenderer.invoke(channels.billRows, input),
+    budget: input => ipcRenderer.invoke(channels.billBudget, input),
+    setBudget: input => ipcRenderer.invoke(channels.billSetBudget, input),
+    rules: () => ipcRenderer.invoke(channels.billRules),
+    saveRule: input => ipcRenderer.invoke(channels.billSaveRule, input),
+    removeRule: id => ipcRenderer.invoke(channels.billRemoveRule, id),
+    applyRules: () => ipcRenderer.invoke(channels.billApplyRules)
   },
   app: {
     getPaths: () => ipcRenderer.invoke(channels.getPaths),
@@ -81,7 +91,8 @@ const api: WorkBaseAPI = {
     },
     getFilePath: file => webUtils.getPathForFile(file),
     getLoginItem: () => ipcRenderer.invoke(channels.appGetLoginItem),
-    setLoginItem: enabled => ipcRenderer.invoke(channels.appSetLoginItem, enabled)
+    setLoginItem: enabled => ipcRenderer.invoke(channels.appSetLoginItem, enabled),
+    hideQuickCapture: async () => { ipcRenderer.send(channels.quickCaptureHide) }
   },
   settings: {
     getAll: () => ipcRenderer.invoke(channels.getAll),
@@ -92,6 +103,23 @@ const api: WorkBaseAPI = {
     list: (page, year, query) => ipcRenderer.invoke(channels.memoriesList, page, year, query ?? null),
     save: input => ipcRenderer.invoke(channels.memoriesSave, input),
     remove: id => ipcRenderer.invoke(channels.memoriesRemove, id)
+  },
+  shelf: {
+    list: query => ipcRenderer.invoke(channels.shelfList, query),
+    stats: () => ipcRenderer.invoke(channels.shelfStats),
+    save: input => ipcRenderer.invoke(channels.shelfSave, input),
+    remove: id => ipcRenderer.invoke(channels.shelfRemove, id)
+  },
+  sources: {
+    list: () => ipcRenderer.invoke(channels.sourcesList),
+    entries: input => ipcRenderer.invoke(channels.sourcesEntries, input),
+    add: input => ipcRenderer.invoke(channels.sourcesAdd, input),
+    update: input => ipcRenderer.invoke(channels.sourcesUpdate, input),
+    remove: id => ipcRenderer.invoke(channels.sourcesRemove, id),
+    refresh: id => ipcRenderer.invoke(channels.sourcesRefresh, { id }),
+    setRead: input => ipcRenderer.invoke(channels.sourcesSetRead, input),
+    readEntry: input => ipcRenderer.invoke(channels.sourcesReadEntry, input),
+    openEntry: id => ipcRenderer.invoke(channels.sourcesOpenEntry, id)
   },
   notes: {
     list: query => ipcRenderer.invoke(channels.notesList, query),
@@ -104,7 +132,10 @@ const api: WorkBaseAPI = {
     stats: () => ipcRenderer.invoke(channels.notesStats),
     trash: () => ipcRenderer.invoke(channels.notesTrash),
     archive: id => ipcRenderer.invoke(channels.notesArchive, id),
-    restore: id => ipcRenderer.invoke(channels.notesRestore, id)
+    restore: id => ipcRenderer.invoke(channels.notesRestore, id),
+    export: input => ipcRenderer.invoke(channels.notesExport, input),
+    wikiTarget: title => ipcRenderer.invoke(channels.notesWikiTarget, title),
+    backlinks: input => ipcRenderer.invoke(channels.notesBacklinks, input)
   },
   libraryFolders: {
     list: library => ipcRenderer.invoke(channels.libraryFoldersList, library),
@@ -118,7 +149,16 @@ const api: WorkBaseAPI = {
     save: input => ipcRenderer.invoke(channels.todosSave, input),
     toggle: id => ipcRenderer.invoke(channels.todosToggle, id),
     remove: id => ipcRenderer.invoke(channels.todosRemove, id),
-    clearDone: () => ipcRenderer.invoke(channels.todosClearDone)
+    clearDone: () => ipcRenderer.invoke(channels.todosClearDone),
+    reorder: ids => ipcRenderer.invoke(channels.todosReorder, ids)
+  },
+  clipboard: {
+    list: query => ipcRenderer.invoke(channels.clipboardList, query),
+    copy: id => ipcRenderer.invoke(channels.clipboardCopy, id),
+    togglePin: id => ipcRenderer.invoke(channels.clipboardPin, id),
+    remove: id => ipcRenderer.invoke(channels.clipboardRemove, id),
+    clear: () => ipcRenderer.invoke(channels.clipboardClear),
+    setEnabled: enabled => ipcRenderer.invoke(channels.clipboardSetEnabled, enabled)
   },
   ielts: {
     studyPulse: input => ipcRenderer.invoke(channels.ieltsStudyPulse, input),
@@ -158,13 +198,16 @@ const api: WorkBaseAPI = {
   },
   focus: {
     add: input => ipcRenderer.invoke(channels.focusAdd, input),
-    stats: () => ipcRenderer.invoke(channels.focusStats)
+    stats: () => ipcRenderer.invoke(channels.focusStats),
+    rename: input => ipcRenderer.invoke(channels.focusRename, input),
+    remove: id => ipcRenderer.invoke(channels.focusRemove, id)
   },
   ai: {
     config: () => ipcRenderer.invoke(channels.aiConfig),
     saveConfig: input => ipcRenderer.invoke(channels.aiSaveConfig, input),
     test: () => ipcRenderer.invoke(channels.aiTest),
     generateArticle: input => ipcRenderer.invoke(channels.aiGenerateArticle, input),
+    dailyReport: input => ipcRenderer.invoke(channels.aiDailyReport, input ?? {}),
     chat: input => ipcRenderer.invoke(channels.aiChat, input),
     regenerate: input => ipcRenderer.invoke(channels.aiRegenerate, input),
     abort: requestId => ipcRenderer.invoke(channels.aiAbort, requestId),

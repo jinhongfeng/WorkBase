@@ -2,8 +2,30 @@ import StarterKit from '@tiptap/starter-kit'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
 import Placeholder from '@tiptap/extension-placeholder'
+import { Mark, mergeAttributes } from '@tiptap/core'
 import { TableKit } from '@tiptap/extension-table'
 import { NoteImageNode, NoteImageRow } from './imageLayout'
+
+/** [[双链]]：富文本里渲染为 data-wiki 锚点，点击跳转由笔记页统一委托处理。 */
+export const WikiLink = Mark.create({
+  name: 'wikiLink',
+  inclusive: false,
+  addAttributes() {
+    return {
+      title: {
+        default: '',
+        parseHTML: element => element.getAttribute('data-wiki') ?? '',
+        renderHTML: attributes => ({ 'data-wiki': String(attributes.title ?? '') })
+      }
+    }
+  },
+  parseHTML() {
+    return [{ tag: 'a[data-wiki]' }]
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ['a', mergeAttributes(HTMLAttributes, { class: 'wiki-link' }), 0]
+  }
+})
 
 /**
  * 笔记编辑器扩展集。抽成独立常量，让运行时校验脚本与真实编辑器共用同一份配置，
@@ -14,6 +36,7 @@ export const noteExtensions = [
     heading: { levels: [1, 2, 3, 4] },
     link: { openOnClick: false, autolink: true }
   }),
+  WikiLink,
   NoteImageNode.configure({ inline: false, allowBase64: false }),
   NoteImageRow,
   // 表格：Markdown GFM 表格与编辑器双向转换都依赖这套 schema，缺了它粘贴/读入的表格会被拍平成文本

@@ -76,7 +76,7 @@ export function resolveAssetPath(hostname: string, pathname: string): string | n
     const file = join(filesRoot(), 'media', name)
     return existsSync(file) ? file : join(legacyFilesPath(), 'media', name)
   }
-  if (hostname !== 'images' && hostname !== 'skill-covers' && hostname !== 'wallpapers' && hostname !== 'immersive-wallpapers') return null
+  if (hostname !== 'images' && hostname !== 'skill-covers' && hostname !== 'shelf-covers' && hostname !== 'wallpapers' && hostname !== 'immersive-wallpapers') return null
   if (!/^\/[0-9a-f-]{36}\.[a-z0-9]+$/i.test(pathname)) return null
   const name = pathname.slice(1)
   const file = join(filesRoot(), hostname, name)

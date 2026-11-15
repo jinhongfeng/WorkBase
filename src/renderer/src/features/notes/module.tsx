@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { ArchiveRestore, BookText, ChevronLeft, ChevronRight, FileText, ListTree, NotebookPen, Pin, PinOff, Plus, Trash2 } from 'lucide-react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react'
+import { ArchiveRestore, BookText, ChevronLeft, ChevronRight, FileCode2, FileDown, FileText, ListTree, NotebookPen, Pin, PinOff, Plus, Trash2 } from 'lucide-react'
 import type { NoteKind, NoteSummary } from '@shared/types'
 import { defineModule } from '../../modules/defineModule'
 import { useNavigation } from '../../stores/navigation'
@@ -8,6 +8,7 @@ import { NoteEditor } from './NoteEditor'
 import { NoteTags, parseNoteTags } from './NoteTags'
 import { NotesLayout } from './NotesLayout'
 import { attachNoteSaver, recoverDetachedNote, type NoteForm } from './pendingSaves'
+import { ActionPopover } from '../../components/ui/ActionPopover'
 import { ConfirmDialog } from '../../components/ui/Dialog'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { LibraryFolderList } from '../../components/ui/LibraryFolderList'
@@ -318,6 +319,17 @@ function NotesPage() {
     }
   }
 
+  /** 导出已保存的笔记版本；未保存的编辑先等自动保存落库。 */
+  const exportActive = async (format: 'md' | 'html' | 'pdf'): Promise<void> => {
+    if (!activeId) return
+    try {
+      const result = await window.api.notes.export({ id: activeId, format })
+      if (result) window.toast.success(`已导出到 ${result.path}`)
+    } catch (error) {
+      window.toast.error(humanError(error))
+    }
+  }
+
   const showOutline = mode === 'rich' && outlineOpen
   const outline = useMemo(() => showOutline ? outlineOf(content) : [], [content, showOutline])
   const words = useMemo(() => countWords(content), [content])
@@ -325,6 +337,45 @@ function NotesPage() {
   const dateLabel = formatDate(journalDate ? `${journalDate}T00:00:00` : createdAt, 'yyyy-MM-dd')
   const searching = Boolean(query.trim())
   const emptyList = !items.length && !listError && !listLoading
+
+  // 反向链接：其他笔记正文里 `[[本篇标题]]` 的引用，随标题与打开的笔记变化。
+  const [backlinks, setBacklinks] = useState<NoteSummary[]>([])
+  useEffect(() => {
+    if (!activeId || trashOpen) { setBacklinks([]); return }
+    let active = true
+    const timer = setTimeout(() => {
+      void window.api.notes.backlinks({ title: documentTitle, excludeId: activeId })
+        .then(value => { if (active) setBacklinks(value) })
+        .catch(() => undefined)
+    }, 400)
+    return () => { active = false; clearTimeout(timer) }
+  }, [activeId, documentTitle, trashOpen])
+
+  /** 双链跳转：命中标题直接打开，否则按标题新建一条笔记再打开。 */
+  const openWikiLink = useCallback(async (name: string): Promise<void> => {
+    const target = name.trim()
+    if (!target) return
+    try {
+      const found = await window.api.notes.wikiTarget(target)
+      if (found) {
+        useNavigation.getState().openNote({ id: found.id })
+        return
+      }
+      const note = await window.api.notes.save({ title: target, content: '', tags: [], kind: 'note' })
+      window.toast.success(`已新建笔记「${target}」`)
+      useNavigation.getState().openNote({ id: note.id })
+    } catch (error) {
+      window.toast.error(humanError(error))
+    }
+  }, [])
+
+  const handleEditorClick = (event: ReactMouseEvent): void => {
+    const anchor = (event.target as HTMLElement).closest('a[data-wiki]')
+    if (!anchor) return
+    event.preventDefault()
+    const name = anchor.getAttribute('data-wiki')
+    if (name) void openWikiLink(name)
+  }
 
   const header = (
     <div>
@@ -356,6 +407,11 @@ function NotesPage() {
         <button className="button ghost sm" title={pinnedActive ? '取消置顶' : '置顶'} aria-label="置顶笔记" aria-pressed={pinnedActive} onClick={() => void togglePin()}>
           {pinnedActive ? <PinOff size={14} /> : <Pin size={14} />}
         </button>
+        <ActionPopover label="导出" disabled={!activeId} actions={[
+          { label: '导出 Markdown', icon: <FileDown size={14} />, onSelect: () => void exportActive('md') },
+          { label: '导出 HTML', icon: <FileCode2 size={14} />, onSelect: () => void exportActive('html') },
+          { label: '导出 PDF', icon: <FileText size={14} />, onSelect: () => void exportActive('pdf') }
+        ]} />
         <button className="button ghost sm notes-document-delete" title="删除笔记" aria-label="删除笔记"
           onClick={() => { if (activeId) setDeleteTarget({ id: activeId, title: documentTitle }) }}><Trash2 size={14} /></button>
       </div>
@@ -363,16 +419,16 @@ function NotesPage() {
   )
 
   const outlinePanel = activeId && showOutline ? (
-    <aside id="notes-outline" className="notes-outline" aria-label="大纲与信息">
+    <aside id="notes-outline" className="notes-outline workspace-sidebar" aria-label="大纲与信息">
       <div className="outline-group">
         <h3>大纲</h3>
-        <button className="outline-link" onClick={() => {
+        <button className="outline-link workspace-sidebar-row" onClick={() => {
           editorSection.current?.querySelector('.notes-canvas')?.scrollTo({ top: 0 })
         }}>回到开头</button>
         {outline.length ? outline.map((item, position) => (
           <button
             key={`${item.index}-${item.text}`}
-            className={`outline-link lv${item.level}`}
+            className={`outline-link workspace-sidebar-row lv${item.level}`}
             onClick={() => {
               const headings = editorSection.current?.querySelectorAll('.prose > :is(h1, h2, h3, h4)')
               headings?.[position]?.scrollIntoView({ block: 'center' })
@@ -388,6 +444,17 @@ function NotesPage() {
           <div className="meta-row"><span>类型</span><span>{kind === 'journal' ? '日记' : '笔记'}</span></div>
           <div className="meta-row"><span>创建</span><span>{formatDate(createdAt, 'yyyy-MM-dd')}</span></div>
         </div>
+      </div>
+      <div className="outline-group">
+        <h3>反向链接</h3>
+        {backlinks.length ? backlinks.map(item => (
+          <button
+            key={item.id}
+            className="outline-link workspace-sidebar-row"
+            title={item.excerpt}
+            onClick={() => useNavigation.getState().openNote({ id: item.id })}
+          >{item.title || '无标题笔记'}</button>
+        )) : <p className="tiny muted">其他笔记用 [[标题]] 提到这篇时会显示在这里。</p>}
       </div>
     </aside>
   ) : null
@@ -452,7 +519,7 @@ function NotesPage() {
         onChanged={() => refreshList(value => value + 1)}
         onDeleteNote={note => setDeleteTarget({ id: note.id, title: note.id === activeId ? documentTitle : note.title })}
         renderItem={item => (
-          <button className="note-item" aria-current={item.id === activeId} onClick={() => void open(item.id)}
+          <button className="note-item workspace-sidebar-row" aria-current={item.id === activeId} onClick={() => void open(item.id)}
             title={[item.title || '无标题笔记', item.excerpt, `更新于 ${formatDate(item.updatedAt, 'M月d日 HH:mm')} · ${item.words} 字`].filter(Boolean).join('\n')}>
             {item.kind === 'journal' ? <BookText size={13} aria-hidden="true" /> : <FileText size={13} aria-hidden="true" />}
             <span>{item.title || '无标题笔记'}</span>
@@ -498,7 +565,7 @@ function NotesPage() {
           <EmptyState compact title="正在浏览回收站" description="左侧的已删除笔记可以恢复，或彻底删除。" />
         </div>
       ) : (
-      <section className="notes-editor" ref={editorSection} aria-label="笔记编辑区">
+      <section className="notes-editor" ref={editorSection} onClick={handleEditorClick} aria-label="笔记编辑区">
         {activeId && documentBar}
         {!activeId ? (
           emptyList && (

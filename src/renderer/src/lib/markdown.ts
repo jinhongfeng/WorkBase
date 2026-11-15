@@ -1,8 +1,36 @@
-import { Marked, marked } from 'marked'
+import { Marked, marked, type Tokens } from 'marked'
 import DOMPurify from 'dompurify'
 import TurndownService from 'turndown'
 
 marked.setOptions({ gfm: true, breaks: true })
+
+function escapeHtml(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
+/** [[双链]]：按标题链接到另一条笔记，存取都是 `[[标题]]` 原文。 */
+const wikilinkExtension = {
+  name: 'wikilink',
+  level: 'inline' as const,
+  start(src: string): number | undefined {
+    const index = src.indexOf('[[')
+    return index < 0 ? undefined : index
+  },
+  tokenizer(src: string): Tokens.Generic | undefined {
+    const match = /^\[\[([^\][\n]{1,120})\]\]/.exec(src)
+    if (!match) return undefined
+    const title = match[1].trim()
+    if (!title) return undefined
+    return { type: 'wikilink', raw: match[0], title, tokens: [] }
+  },
+  renderer(token: Tokens.Generic): string {
+    const title = String(token['title'] ?? '')
+    return `<a data-wiki="${escapeHtml(title)}">${escapeHtml(title)}</a>`
+  }
+}
+
+// 展示（首页、AI 等正文渲染）与编辑器互转都要识别双链。
+marked.use({ extensions: [wikilinkExtension] })
 
 // TipTap 的任务列表只接受任务项。把混排的普通列表项与任务项按原顺序分组。
 const noteMarkdown = new Marked({
@@ -30,6 +58,8 @@ const noteMarkdown = new Marked({
     checkbox() { return '' }
   }
 })
+
+noteMarkdown.use({ extensions: [wikilinkExtension] })
 
 /** 允许本地资源协议，其余协议交给默认白名单。 */
 const ALLOWED_URI = /^(?:(?:https?|mailto|tel|data|wb-asset|blob):|[^a-z]|[a-z+.-]+(?:[^a-z+.\-:]|$))/i
@@ -64,6 +94,11 @@ turndown.addRule('taskItem', {
     const checked = (node as HTMLElement).getAttribute('data-checked') === 'true'
     return `- [${checked ? 'x' : ' '}] ${content.trim().replace(/\n/g, '\n  ')}${node.nextSibling ? '\n' : ''}`
   }
+})
+
+turndown.addRule('wikilink', {
+  filter: node => node.nodeName === 'A' && node.hasAttribute('data-wiki'),
+  replacement: (_, node) => `[[${(node as HTMLElement).getAttribute('data-wiki')}]]`
 })
 
 turndown.addRule('strikethrough', {

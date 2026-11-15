@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type DragEventHandler } from 'react'
 import { createPortal } from 'react-dom'
-import { Check, Flag, ListTodo, Pencil, Plus, Trash2 } from 'lucide-react'
+import { Check, Flag, GripVertical, ListTodo, Pencil, Plus, Trash2 } from 'lucide-react'
 import type { Todo } from '@shared/types'
 import { defineModule } from '../../modules/defineModule'
 import { useNavigation } from '../../stores/navigation'
@@ -53,6 +53,10 @@ function TodosPage() {
   const [titleTip, setTitleTip] = useState<{ anchor: HTMLSpanElement; title: string } | null>(null)
   const titleInput = useRef<HTMLInputElement>(null)
   const tooltip = useRef<HTMLDivElement>(null)
+  // 分组内拖拽排序：handle 触发拖动，drop 落在分组内某张卡片的上/下半沿。
+  const [draggingId, setDraggingId] = useState<string | null>(null)
+  const [dropHint, setDropHint] = useState<{ groupKey: string; index: number } | null>(null)
+  const dragSource = useRef<{ id: string; groupKey: string } | null>(null)
 
   useLayoutEffect(() => {
     const tip = tooltip.current
@@ -180,6 +184,43 @@ function TodosPage() {
     }
   }
 
+  const startDrag = (todo: Todo, groupKey: string): DragEventHandler => event => {
+    dragSource.current = { id: todo.id, groupKey }
+    setDraggingId(todo.id)
+    event.dataTransfer.effectAllowed = 'move'
+    event.dataTransfer.setData('text/plain', todo.id)
+  }
+
+  const hoverRow = (groupKey: string, index: number): DragEventHandler => event => {
+    const source = dragSource.current
+    if (!source || source.groupKey !== groupKey) return
+    event.preventDefault()
+    event.dataTransfer.dropEffect = 'move'
+    const rect = event.currentTarget.getBoundingClientRect()
+    setDropHint({ groupKey, index: event.clientY > rect.top + rect.height / 2 ? index + 1 : index })
+  }
+
+  const finishDrag = (): void => {
+    dragSource.current = null
+    setDraggingId(null)
+    setDropHint(null)
+  }
+
+  const commitReorder = (groupKey: string, index: number): void => {
+    const source = dragSource.current
+    finishDrag()
+    if (!source || source.groupKey !== groupKey) return
+    const group = groups.find(item => item.key === groupKey)
+    if (!group) return
+    const ids = group.rows.map(row => row.id)
+    const from = ids.indexOf(source.id)
+    if (from < 0) return
+    ids.splice(from, 1)
+    const target = Math.max(0, Math.min(ids.length, index > from ? index - 1 : index))
+    ids.splice(target, 0, source.id)
+    void window.api.todos.reorder(ids).then(load).catch(error => window.toast.error(humanError(error)))
+  }
+
   const today = todayKey()
   const groups = useMemo(() => {
     const open = todos.filter(todo => todo.done === 0)
@@ -276,22 +317,44 @@ function TodosPage() {
                     {group.key === 'done' && <button className="button ghost sm todo-clear" onClick={() => setConfirmingClear(true)}>清除已完成</button>}
                   </div>
                   <ul className="list todo-card-grid">
-                    {group.rows.map(todo => {
+                    {group.rows.map((todo, index) => {
                       const done = todo.done === 1
                       const overdue = !done && todo.dueDate !== null && todo.dueDate < today
                       const dateLabel = todo.dueDate
                         ? formatDate(`${todo.dueDate}T00:00:00`, 'M月d日')
                         : '无日期'
+                      const droppable = !done && draggingId !== null && dragSource.current?.groupKey === group.key
+                      const hint = dropHint?.groupKey === group.key && draggingId !== null
+                        ? (dropHint.index === index ? 'above' : dropHint.index === index + 1 ? 'below' : null)
+                        : null
                       return (
                         <li
                           className="card list-row todo-task-card"
                           key={todo.id}
                           data-done={done}
+                          data-dragging={draggingId === todo.id || undefined}
+                          data-drop-above={droppable && hint === 'above' || undefined}
+                          data-drop-below={droppable && hint === 'below' || undefined}
+                          onDragOver={droppable ? hoverRow(group.key, index) : undefined}
+                          onDrop={droppable ? event => { event.preventDefault(); commitReorder(group.key, dropHint?.groupKey === group.key ? dropHint.index : index) } : undefined}
                           onClick={event => {
                             if ((event.target as HTMLElement).closest('button')) return
                             openEdit(todo)
                           }}
                         >
+                          {!done && (
+                            <button
+                              className="icon-action todo-drag-handle"
+                              draggable
+                              title="拖动调整顺序"
+                              aria-label={`拖动调整「${todo.title}」的顺序`}
+                              onDragStart={startDrag(todo, group.key)}
+                              onDragEnd={finishDrag}
+                              onClick={event => event.stopPropagation()}
+                            >
+                              <GripVertical size={14} />
+                            </button>
+                          )}
                           <button
                             className="check"
                             aria-label={`${done ? '取消完成' : '完成'} ${todo.title}`}

@@ -24,6 +24,33 @@
 /* 两组数字之间的竖分隔线：中灰色保证深浅主题都可见。 */
 .bills-overview-divider { flex: 0 0 1px; align-self: stretch; background: var(--text-3); }
 .bills-page .segmented { flex-wrap: wrap; }
+/* 带迷你走势的统计块：右侧留出 Sparkline 的空间，保持无壳外观。 */
+.bills-overview-body .stat-card.has-spark { padding: 0 86px 0 0; }
+
+/* 趋势卡摘要行：月均 / 峰值 / 结余，读数用等宽数字。 */
+.bills-trend-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 22px;
+  margin: 0 0 10px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+.bills-trend-meta strong { color: var(--text); font-weight: 650; }
+
+/* 分类环形占比：居中 132px，中心叠放总额读数；数据明细由下方 BarList 承担。 */
+.bills-donut { position: relative; width: 132px; height: 132px; margin: 2px auto 14px; }
+.bills-donut > span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 2px;
+  font-size: 11px;
+  color: var(--text-2);
+}
+.bills-donut strong { max-width: 90px; overflow-wrap: anywhere; text-align: center; color: var(--text); font-size: 14px; font-weight: 650; }
 
 /* 交易明细默认折叠，点击标题行展开。 */
 .bills-details { margin-top: 4px; }
@@ -35,7 +62,7 @@
   padding: 11px 14px;
   border: 1px solid var(--border);
   border-radius: var(--r-md);
-  background: var(--surface);
+  background: var(--workspace-panel, var(--surface));
   text-align: left;
   cursor: pointer;
 }
@@ -78,3 +105,41 @@
 /* 交易明细的搜索与收/支筛选行。 */
 .bills-details-filters { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-bottom: 10px; }
 .bills-details-filters .search-field { flex: 1 1 220px; max-width: 320px; }
+
+/* 本月预算：进度条 + 行内编辑；分类规则弹窗。 */
+.bills-budget { margin-top: 12px; }
+.bills-budget-body { display: grid; gap: 10px; }
+.bills-budget-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.bills-budget-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width var(--dur-1) var(--ease-ui);
+}
+.bills-budget-bar span[data-over] { background: var(--danger); }
+.bills-budget-edit { display: flex; align-items: center; gap: 8px; }
+.bills-budget-edit .input { max-width: 260px; }
+.bills-rules { display: grid; gap: 12px; }
+.bills-rules .muted { margin: 0; font-size: 12.5px; }
+.bills-rules-add { display: flex; flex-wrap: wrap; gap: 8px; }
+.bills-rules-add .input { flex: 1 1 150px; }
+.bills-rules-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.bills-rules-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  font-size: 13px;
+}
+.bills-rule-pattern { font-weight: 650; overflow-wrap: anywhere; }
+.bills-rule-arrow { color: var(--text-3); }
+.bills-rule-category { color: var(--text-2); overflow-wrap: anywhere; }
+.bills-rules-list .icon-action { margin-inline-start: auto; }

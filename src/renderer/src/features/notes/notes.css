@@ -4,23 +4,13 @@
   --notes-marker: var(--note-accent);
 }
 .notes-app[data-outline] {
-  --notes-chrome: var(--action-base);
   --notes-chrome-ink: color-mix(in srgb, var(--text-2) 60%, var(--text));
   height: 100%;
   background: var(--workspace-canvas, var(--surface));
 }
 
-body:has(.wallpaper--workspace[data-clear="true"]) .notes-app[data-outline] {
-  --notes-chrome: color-mix(in srgb, var(--action-base) 86%, transparent);
-}
-body:has(.wallpaper--workspace:not([data-clear="true"])) .notes-app[data-outline] {
-  --notes-chrome: color-mix(in srgb, var(--action-base) 92%, transparent);
-}
-.notes-app :is(.notes-side, .notes-outline, .notes-document-bar, .notes-toolbar, .notes-tablebar, .notes-status) {
-  background: var(--notes-chrome);
-}
-.notes-app .notes-side {
-  backdrop-filter: none;
+.notes-app :is(.notes-document-bar, .notes-toolbar, .notes-tablebar, .notes-status) {
+  background: var(--workspace-toolbar, var(--surface));
 }
 
 .notes-app .notes-side-head { grid-template-columns: minmax(0, 1fr); padding: 14px 12px 8px; gap: 8px; }
@@ -61,7 +51,7 @@ body:has(.wallpaper--workspace:not([data-clear="true"])) .notes-app[data-outline
 }
 .notes-app .notes-list-actions .button.sm { gap: 4px; padding-inline: 8px; }
 .notes-app .notes-list-actions .button.sm.icon { width: 28px; padding-inline: 0; }
-.notes-app .search-field .input { height: 32px; background: var(--surface); }
+.notes-app .search-field .input { height: 32px; }
 .notes-app .input::placeholder { color: var(--text-2); }
 .notes-app .notes-list { gap: 1px; padding: 0 8px 8px; }
 .notes-pagination {
@@ -88,15 +78,10 @@ body:has(.wallpaper--workspace:not([data-clear="true"])) .notes-app[data-outline
   font-weight: 400;
 }
 .notes-app .library-folder-row { font-weight: 550; }
-.notes-app .library-folder-row:hover { background: var(--surface); }
 .notes-app .library-folder-items { gap: 1px; margin-bottom: 2px; }
 .notes-app .note-item span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.notes-app .note-item:hover { background: var(--surface); }
 .notes-app .note-item[aria-current="true"] {
-  border-color: transparent;
-  background: var(--selection-fill);
-  color: var(--action-ink);
-  box-shadow: none;
+  color: var(--text);
   font-weight: 600;
 }
 .notes-app .note-item svg { color: var(--text-2); }
@@ -172,7 +157,6 @@ body:has(.wallpaper--workspace:not([data-clear="true"])) .notes-app[data-outline
 .notes-app .tb-menu-panel > button:focus-visible { outline: 1px solid var(--accent); outline-offset: -1px; }
 .notes-app .notes-tablebar { min-height: 34px; flex-wrap: wrap; padding: 4px 14px; overflow: visible; }
 
-.notes-app :is(.notes-canvas, .notes-empty) { background: var(--action-base); }
 .notes-app .notes-canvas { padding: 28px 40px 36px; }
 .notes-document-path {
   display: flex;
@@ -419,10 +403,6 @@ body:has(.wallpaper--workspace:not([data-clear="true"])) .notes-app[data-outline
   .notes-app .notes-canvas { padding-inline: 24px; }
 }
 
-html[data-workspace-style="paper"] .notes-app :is(.notes-canvas, .notes-empty) {
-  background: var(--bg);
-}
-
 /* 纸边伸出内容边界，保留两种编辑模式原来的可用宽度。 */
 html[data-workspace-style="paper"] .notes-paper { isolation: isolate; }
 html[data-workspace-style="paper"] .notes-paper::before {
@@ -432,7 +412,7 @@ html[data-workspace-style="paper"] .notes-paper::before {
   z-index: -1;
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
-  background: var(--surface);
+  background: var(--workspace-panel, var(--surface));
   box-shadow: var(--shadow-1);
   pointer-events: none;
 }
@@ -453,7 +433,7 @@ html[data-workspace-style="paper"] .notes-app .source-area {
   border-style: dashed;
   border-color: var(--border-strong);
   border-radius: var(--r-lg);
-  background: var(--surface);
+  background: transparent;
   line-height: 2;
 }
 html[data-workspace-style="paper"] :is(.notes-app .prose, .focus-room-note) { font-size: 17px; line-height: 1.95; }
@@ -645,3 +625,15 @@ html[data-workspace-style="apple"] :is(.notes-app .prose, .focus-room-note) th {
 .notes-trash-actions { display: inline-flex; gap: 4px; opacity: 0; transition: opacity var(--dur-1) var(--ease-ui); }
 .notes-side .notes-trash-item:is(:hover, :focus-within) .notes-trash-actions { opacity: 1; }
 @media (hover: none) { .notes-trash-actions { opacity: 1; } }
+
+/* [[双链]]：富文本与展示渲染里的标题链接。 */
+.prose a.wiki-link,
+.focus-room-note a.wiki-link {
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dashed;
+  text-decoration-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  text-underline-offset: 3px;
+}
+.prose a.wiki-link:hover { text-decoration-style: solid; }

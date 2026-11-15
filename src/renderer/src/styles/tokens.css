@@ -81,13 +81,13 @@
   --wp-accent: #8CD3B8;
   --wp-accent-soft: #17322A;
   --wp-content-tint: 85%;
-  --wp-content-tint-clear: 45%;
+  --wp-content-tint-clear: 55%;
   --wp-sidebar-tint: 80%;
   --wp-sidebar-blur: 10px;
-  --wp-sidebar-clear-background: color-mix(in srgb, var(--surface-2) var(--wp-content-tint-clear), transparent);
+  --wp-sidebar-clear-background: color-mix(in srgb, var(--surface-2) 45%, transparent);
   --wp-chrome-tint: 89%;
-  --wp-panel-tint: 28%;
-  --wp-toolbar-tint: 18%;
+  --wp-panel-tint: 52%;
+  --wp-toolbar-tint: 30%;
   /* 笔记正文装饰色（标题底线/引用边线/列表圆点）：参考报纸排版的砖红色，
      仅在笔记与沉浸阅读正文内使用，不参与全局绿色主题。 */
   --note-accent: #A8432E;
@@ -265,12 +265,12 @@ html[data-workspace-style="apple"] {
   /* 毛玻璃需要壁纸透出更多：降低各层底色不透明度，属于背景层调整，
      不动边框与阴影取值（外观一致性约束第 1、5 条）。 */
   --wp-content-tint: 70%;
-  --wp-content-tint-clear: 40%;
+  --wp-content-tint-clear: 52%;
   --wp-sidebar-tint: 60%;
   --wp-sidebar-blur: 18px;
   --wp-sidebar-clear-background: var(--surface-2);
-  --wp-panel-tint: 22%;
-  --wp-toolbar-tint: 16%;
+  --wp-panel-tint: 48%;
+  --wp-toolbar-tint: 28%;
 }
 
 /* ---------- 主题色（用户选择） ----------

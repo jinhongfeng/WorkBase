@@ -4,6 +4,7 @@ import type { DailyBriefStatus } from './daily-briefs'
 import type { InstalledPlugin } from './plugins'
 import type { ArticleCategory, ArticleDraft, ArticleGenerateInput } from './article-writing'
 import type { AnalyzeReferencesInput, CreateReferenceContentInput, RankingQuery, ReferenceAnalysis, ReferenceContent, ReferenceRanking } from './article-references'
+import type { ShelfInput, ShelfItem, ShelfQuery, ShelfStats } from './shelf'
 
 export interface AppPaths {
   userData: string
@@ -123,6 +124,26 @@ export interface TodoStats {
   dueToday: number
 }
 
+export interface ClipboardItem {
+  id: string
+  content: string
+  pinned: number
+  createdAt: number
+  updatedAt: number
+}
+
+export interface ClipboardQuery {
+  q?: string
+  limit?: number
+  offset?: number
+}
+
+export interface ClipboardPage {
+  items: ClipboardItem[]
+  total: number
+  offset: number
+}
+
 export type IeltsItemKind = 'word' | 'sentence'
 
 export interface IeltsSet {
@@ -232,6 +253,13 @@ export interface ActivityYear {
   trackingSince: string
   sources: ActivitySource[]
   days: ActivityDay[]
+}
+
+/** 页面停留统计：pages 按秒数降序；months 为 YYYY-MM-DD 中截取的两位月号。 */
+export interface PageTimeStats {
+  year: number
+  pages: { page: string; seconds: number }[]
+  months: { month: string; seconds: number }[]
 }
 
 export interface FocusStats {
@@ -451,6 +479,13 @@ export interface WorkBaseAPI {
     save(input: import('./memories').MemoryInput): Promise<import('./memories').MemoryEntry>
     remove(id: string): Promise<void>
   }
+  shelf: {
+    list(query: ShelfQuery): Promise<ShelfItem[]>
+    stats(): Promise<ShelfStats>
+    save(input: ShelfInput): Promise<ShelfItem>
+    remove(id: string): Promise<void>
+  }
+  sources: import('./sources').SourcesAPI
   media: MediaAPI
   wallpaper: {
     get(scope?: WallpaperScope): Promise<WallpaperConfig>
@@ -476,6 +511,7 @@ export interface WorkBaseAPI {
     getFilePath(file: File): string
     getLoginItem(): Promise<boolean>
     setLoginItem(enabled: boolean): Promise<boolean>
+    hideQuickCapture(): Promise<void>
   }
   settings: {
     getAll(): Promise<Settings>
@@ -494,6 +530,9 @@ export interface WorkBaseAPI {
     trash(): Promise<NoteSummary[]>
     archive(id: string): Promise<void>
     restore(id: string): Promise<void>
+    export(input: { id: string; format: 'md' | 'html' | 'pdf' }): Promise<{ path: string } | null>
+    wikiTarget(title: string): Promise<{ id: string } | null>
+    backlinks(input: { title: string; excludeId?: string }): Promise<NoteSummary[]>
   }
   libraryFolders: {
     list(library: FolderLibrary): Promise<LibraryFolder[]>
@@ -508,6 +547,15 @@ export interface WorkBaseAPI {
     toggle(id: string): Promise<Todo>
     remove(id: string): Promise<void>
     clearDone(): Promise<void>
+    reorder(ids: string[]): Promise<void>
+  }
+  clipboard: {
+    list(query: ClipboardQuery): Promise<ClipboardPage>
+    copy(id: string): Promise<boolean>
+    togglePin(id: string): Promise<ClipboardItem | null>
+    remove(id: string): Promise<void>
+    clear(): Promise<void>
+    setEnabled(enabled: boolean): Promise<void>
   }
   ielts: {
     studyPulse(input: { sessionId: string; active: boolean }): Promise<void>
@@ -544,15 +592,22 @@ export interface WorkBaseAPI {
   focus: {
     add(input: { minutes: number; label?: string }): Promise<FocusStats>
     stats(): Promise<FocusStats>
+    rename(input: { id: string; label: string }): Promise<FocusStats>
+    remove(id: string): Promise<FocusStats>
   }
   activity: {
     year(input: { year: number; sources: ActivitySource[] }): Promise<ActivityYear>
+  }
+  pageTime: {
+    track(input: { page: string; seconds: number }): Promise<void>
+    stats(year: number): Promise<PageTimeStats>
   }
   ai: {
     config(): Promise<AIConfig>
     saveConfig(input: AIConfigInput): Promise<AIConfig>
     test(): Promise<string>
     generateArticle(input: ArticleGenerateInput): Promise<ArticleDraft>
+    dailyReport(input?: { date?: string }): Promise<{ content: string }>
     chat(input: ChatRequest): Promise<ChatResult>
     regenerate(input: { requestId: string; threadId: string }): Promise<ChatResult>
     abort(requestId: string): Promise<void>

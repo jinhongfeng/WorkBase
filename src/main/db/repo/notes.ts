@@ -59,6 +59,12 @@ function deriveTitle(content: string): string {
   return (line ?? '').slice(0, 60) || '无标题笔记'
 }
 
+/** trigram 分词至少需要 3 个字符才能产生 token；更短的查询回退 LIKE。 */
+function ftsMatchPhrase(query: string): string | null {
+  const trimmed = query.trim()
+  return [...trimmed].length >= 3 ? `"${trimmed.replace(/"/g, '""')}"` : null
+}
+
 function noteFilters(query: NoteQuery): { clause: string; params: unknown[] } {
   const conditions = ['archived = 0']
   const params: unknown[] = []
@@ -66,8 +72,12 @@ function noteFilters(query: NoteQuery): { clause: string; params: unknown[] } {
   if (query.pinnedOnly) conditions.push('pinned = 1')
   if (query.query?.trim()) {
     const like = `%${query.query.trim()}%`
-    conditions.push('(title LIKE ? OR content LIKE ? OR tags LIKE ? OR folder_id IN (SELECT id FROM note_folders WHERE name LIKE ?))')
-    params.push(like, like, like, like)
+    const phrase = ftsMatchPhrase(query.query)
+    const textMatch = phrase
+      ? { clause: 'id IN (SELECT rowid FROM notes_fts WHERE notes_fts MATCH ?)', params: [phrase] }
+      : { clause: '(title LIKE ? OR content LIKE ?)', params: [like, like] }
+    conditions.push(`(${textMatch.clause} OR tags LIKE ? OR folder_id IN (SELECT id FROM note_folders WHERE name LIKE ?))`)
+    params.push(...textMatch.params, like, like)
   }
   return { clause: conditions.join(' AND '), params }
 }
@@ -178,6 +188,24 @@ export function restoreNote(id: string): void {
 
 export function toggleNotePin(id: string): void {
   getDatabase().prepare('UPDATE notes SET pinned = CASE pinned WHEN 1 THEN 0 ELSE 1 END, updated_at = ? WHERE id = ?').run(Date.now(), id)
+}
+
+/** 双链目标：按标题精确匹配现存笔记；无命中时渲染层按标题新建。 */
+export function findNoteIdByTitle(title: string): string | null {
+  const row = getDatabase()
+    .prepare('SELECT id FROM notes WHERE archived = 0 AND title = ? ORDER BY updated_at DESC, id DESC LIMIT 1')
+    .pluck().get(title) as string | undefined
+  return row ?? null
+}
+
+/** 反向链接：其他笔记正文含 `[[标题]]` 的现存笔记，最近更新优先。 */
+export function listNoteBacklinks(title: string, excludeId: string | null): NoteSummary[] {
+  const pattern = `%[[${title.replace(/[\\%_]/g, ch => `\\${ch}`)}]]%`
+  const rows = getDatabase()
+    .prepare(`SELECT * FROM notes WHERE archived = 0 AND content LIKE ? ESCAPE '\\' ${excludeId ? 'AND id <> ?' : ''}
+      ORDER BY updated_at DESC LIMIT 20`)
+    .all(...(excludeId ? [pattern, excludeId] : [pattern])) as NoteRow[]
+  return rows.map(toSummary)
 }
 
 export function noteStats(): NoteStats {

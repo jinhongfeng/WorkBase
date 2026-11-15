@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto'
-import type { BillDirection, BillImportResult, BillOverview, BillRange, BillRowsPage, BillSummary } from '@shared/bills'
+import type { BillBudgetOverview, BillDirection, BillImportResult, BillOverview, BillRange, BillRowsPage, BillRule, BillSummary } from '@shared/bills'
 import { getDatabase } from '..'
+import { fail } from '../../ipc/errors'
 
 export interface BillRow {
   order: string
@@ -25,6 +26,12 @@ export function saveBill(fileName: string, source: 'email' | 'file', rows: BillR
   const result: BillImportResult = { added: 0, duplicates: 0, excluded, failures: [] }
   if (!rows.length) return result
   const db = getDatabase()
+  // 导入时按分类规则改写分类：交易对方包含关键字即命中，先创建的规则优先。
+  const rules = listBillRules()
+  const applied = rows.map(row => {
+    const rule = rules.find(item => item.pattern && row.counterparty.includes(item.pattern))
+    return rule ? { ...row, category: rule.category } : row
+  })
   const id = randomUUID()
   const insert = db.prepare(`INSERT INTO bill_txns
     (fingerprint, import_id, ts, category, amount_cents, direction, counterparty)
@@ -34,10 +41,12 @@ export function saveBill(fileName: string, source: 'email' | 'file', rows: BillR
   const legacyOccurrences = new Map<string, number>()
   return db.transaction(() => {
     db.prepare('INSERT INTO bill_imports VALUES (?, ?, ?, ?)').run(id, source, fileName, Date.now())
-    for (const row of rows) {
+    for (const [index, row] of applied.entries()) {
       let key = `order:${row.order}`
       if (!row.order) {
-        const fields = [row.timestamp, row.category, row.amountCents]
+        // 旧签名按导入时的原始分类计算：规则改写分类后重复导入仍按原口径判重。
+        const original = rows[index]
+        const fields = [original.timestamp, original.category, original.amountCents]
         const signature = JSON.stringify([...fields, row.direction])
         key = `row:${signature}:${nextOccurrence(occurrences, signature)}`
         // Before migration 009, the fallback key could not distinguish income and expense.
@@ -54,6 +63,94 @@ export function saveBill(fileName: string, source: 'email' | 'file', rows: BillR
     if (!result.added) db.prepare('DELETE FROM bill_imports WHERE id = ?').run(id)
     return result
   })()
+}
+
+// ---------------------------------------------------------------------------
+// 预算与分类规则
+
+/** 按北京时间自然月解析 'YYYY-MM' 为 [start, end) 毫秒区间。 */
+function monthRange(month: string): { start: number; end: number } {
+  const [year, monthIndex] = month.split('-').map(Number)
+  if (!Number.isInteger(year) || !Number.isInteger(monthIndex) || monthIndex < 1 || monthIndex > 12) {
+    fail('BILL_MONTH_INVALID', '月份格式应为 YYYY-MM。')
+  }
+  const offset = 8 * 3600000
+  return {
+    start: Date.UTC(year, monthIndex - 1, 1) - offset,
+    end: Date.UTC(year, monthIndex, 1) - offset
+  }
+}
+
+export function readBillBudget(month: string): BillBudgetOverview {
+  const db = getDatabase()
+  const { start, end } = monthRange(month)
+  const budget = db.prepare('SELECT amount_cents FROM bill_budgets WHERE month = ?').pluck().get(month) as number | undefined
+  const spend = db.prepare(`
+    SELECT COALESCE(SUM(CASE WHEN direction = 'expense' THEN amount_cents END), 0) AS spentCents,
+      COALESCE(SUM(CASE WHEN direction = 'income' THEN amount_cents END), 0) AS incomeCents,
+      COUNT(*) AS txnCount
+    FROM bill_txns WHERE ts >= ? AND ts < ?
+  `).get(start, end) as { spentCents: number; incomeCents: number; txnCount: number }
+  return { month, budgetCents: budget ?? null, spentCents: spend.spentCents, incomeCents: spend.incomeCents, txnCount: spend.txnCount }
+}
+
+export function writeBillBudget(month: string, amountCents: number | null): void {
+  const db = getDatabase()
+  db.transaction(() => {
+    if (amountCents === null) db.prepare('DELETE FROM bill_budgets WHERE month = ?').run(month)
+    else db.prepare(`INSERT INTO bill_budgets(month, amount_cents, updated_at) VALUES (?, ?, ?)
+      ON CONFLICT(month) DO UPDATE SET amount_cents = excluded.amount_cents, updated_at = excluded.updated_at`)
+      .run(month, amountCents, Date.now())
+  })()
+}
+
+function likePattern(term: string): string {
+  return `%${term.replace(/[\\%_]/g, ch => `\\${ch}`)}%`
+}
+
+export function listBillRules(): BillRule[] {
+  return getDatabase().prepare('SELECT id, pattern, category, created_at AS createdAt FROM bill_rules ORDER BY created_at ASC, id ASC')
+    .all() as BillRule[]
+}
+
+export function saveBillRule(input: { id?: string; pattern: string; category: string }): BillRule[] {
+  const db = getDatabase()
+  const pattern = input.pattern.trim()
+  if (!pattern) fail('BILL_RULE_EMPTY', '规则关键字不能为空。')
+  try {
+    if (input.id) {
+      db.prepare('UPDATE bill_rules SET pattern = ?, category = ? WHERE id = ?').run(pattern, input.category.trim(), input.id)
+    } else {
+      db.prepare('INSERT INTO bill_rules(id, pattern, category, created_at) VALUES (?, ?, ?, ?)')
+        .run(randomUUID(), pattern, input.category.trim(), Date.now())
+    }
+  } catch (error) {
+    // UNIQUE 冲突：同一关键字已存在规则时提示合并而非报错堆栈。
+    if (error instanceof Error && /UNIQUE/i.test(error.message)) fail('BILL_RULE_EXISTS', '已存在相同关键字的规则，请直接编辑那条规则。')
+    throw error
+  }
+  return listBillRules()
+}
+
+export function removeBillRule(id: string): BillRule[] {
+  getDatabase().prepare('DELETE FROM bill_rules WHERE id = ?').run(id)
+  return listBillRules()
+}
+
+/** 把规则重灌到已有账单：命中关键字的交易分类改写为规则分类，返回更新的行数。 */
+export function applyBillRules(): { updated: number } {
+  const db = getDatabase()
+  const rules = listBillRules()
+  if (!rules.length) return { updated: 0 }
+  let updated = 0
+  db.transaction(() => {
+    for (const rule of rules) {
+      const { changes } = db.prepare(`UPDATE bill_txns SET category = ? WHERE counterparty LIKE ? ESCAPE '\\'`)
+        .run(rule.category, likePattern(rule.pattern))
+      updated += changes
+    }
+  })()
+  return { updated }
 }
 
 /** 时间范围 → WHERE 条件与参数（北京时间口径）；收支概览与明细列表共用。 */

@@ -192,6 +192,7 @@ button.chip, a.chip, .chip.clickable, .chip[role="button"] { height: 29px; min-h
 }
 .empty-state-region { flex: 1 0 auto; display: grid; align-content: safe center; text-align: center; }
 .page > .empty-state { margin-block: auto; }
+.error-fallback { height: 100%; display: grid; place-items: center; overflow: auto; }
 .page-loading { display: grid; place-items: center; min-height: 260px; }
 .spinner { animation: spin .9s linear infinite; }
 .skeleton {

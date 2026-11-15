@@ -2,6 +2,7 @@ import { lazy, Suspense, useMemo, useEffect } from 'react'
 import { useModuleRegistry } from './modules/registry'
 import type { ModuleDefinition } from './modules/defineModule'
 import { useNavigation } from './stores/navigation'
+import { usePageTimeTracking } from './lib/pageTime'
 import { Spinner } from './components/ui/Spinner'
 
 // A tiny hash router keeps file:// navigation offline without adding a routing dependency.
@@ -18,6 +19,7 @@ export function Router() {
   const pluginsReady = useModuleRegistry(state => state.pluginsReady)
   const module = modules.find(module => module.path === path)
   const waitingForPlugin = !pluginsReady && path.startsWith('/plugins/')
+  usePageTimeTracking(module?.id)
   useEffect(() => {
     const update = () => useNavigation.setState({ path: location.hash.slice(1) || '/dashboard' })
     addEventListener('hashchange', update)

@@ -79,3 +79,12 @@ export function removeMemory(id: string): string[] {
   const row = db.transaction(() => db.prepare('DELETE FROM memories WHERE id = ? RETURNING image_files').get(id))() as Pick<MemoryRow, 'image_files'> | undefined
   return row ? JSON.parse(row.image_files) as string[] : []
 }
+
+/** 同月日的全部纪念记录（跨年份），供纪念日提醒使用；按日期倒序取前几条。 */
+export function listMemoriesByDayOfYear(monthDay: string, limit = 3): { date: string; content: string }[] {
+  return getDatabase().prepare(`
+    SELECT event_date, content FROM memories
+    WHERE substr(event_date, 6) = ?
+    ORDER BY event_date DESC, event_time DESC LIMIT ?
+  `).all(monthDay, limit) as { date: string; content: string }[]
+}

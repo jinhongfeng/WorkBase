@@ -55,7 +55,7 @@
 .ielts-page .word-card {
   min-width: 0;
   padding: 14px;
-  background: var(--surface);
+  background: var(--workspace-panel, var(--surface));
   border-radius: var(--r-md);
   box-shadow: var(--shadow-1);
   overflow-wrap: anywhere;
@@ -84,7 +84,7 @@
 .ielts-page .review-stage {
   min-height: 0;
   padding: 24px 16px;
-  background: var(--surface);
+  background: var(--workspace-panel, var(--surface));
   border-radius: var(--r-md);
 }
 .ielts-review-card .meter { margin-bottom: 16px; }
@@ -111,7 +111,7 @@
   padding: clamp(16px, 3vw, 36px);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
-  background: var(--surface);
+  background: var(--workspace-panel, var(--surface));
   color: var(--text);
   overflow-wrap: anywhere;
   font-size: 14px;

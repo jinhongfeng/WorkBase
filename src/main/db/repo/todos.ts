@@ -31,9 +31,13 @@ function toTodo(row: TodoRow): Todo {
 }
 
 export function listTodos(): Todo[] {
+  // 未完成按用户手动排序（sort）展示，拖拽结果即时生效；已完成按完成时间倒序。
   const rows = getDatabase()
-    .prepare('SELECT * FROM todos ORDER BY done ASC, priority ASC, COALESCE(due_date, ?) ASC, created_at DESC')
-    .all('9999-12-31') as TodoRow[]
+    .prepare(`SELECT * FROM todos ORDER BY done ASC,
+      CASE WHEN done = 0 THEN sort ELSE 2147483647 END ASC,
+      CASE WHEN done = 1 THEN done_at ELSE 0 END DESC,
+      created_at DESC`)
+    .all() as TodoRow[]
   return rows.map(toTodo)
 }
 
@@ -61,9 +65,10 @@ export function saveTodo(input: TodoInput): Todo {
     return getTodo(input.id)
   }
   const id = randomUUID()
-  const max = db.prepare('SELECT COALESCE(MAX(sort), 0) AS value FROM todos').get() as { value: number }
+  // 新待办插入未完成列表顶部：sort 取当前最小值减一，保持「最新在上」的视觉顺序。
+  const min = db.prepare('SELECT COALESCE(MIN(sort), 1) AS value FROM todos').get() as { value: number }
   db.prepare('INSERT INTO todos(id, title, detail, priority, due_date, done, created_at, updated_at, sort) VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)')
-    .run(id, input.title.trim(), input.detail ?? '', input.priority ?? 2, input.dueDate ?? null, now, now, max.value + 1)
+    .run(id, input.title.trim(), input.detail ?? '', input.priority ?? 2, input.dueDate ?? null, now, now, min.value - 1)
   return getTodo(id)
 }
 
@@ -78,6 +83,16 @@ export function toggleTodo(id: string): Todo {
 
 export function removeTodo(id: string): void {
   getDatabase().prepare('DELETE FROM todos WHERE id = ?').run(id)
+}
+
+/** 分组内拖拽排序：按传入顺序重写 sort，只更新列表里出现的待办。 */
+export function reorderTodos(ids: string[]): void {
+  const db = getDatabase()
+  db.transaction(() => {
+    for (const [index, id] of ids.entries()) {
+      db.prepare('UPDATE todos SET sort = ? WHERE id = ?').run(index + 1, id)
+    }
+  })()
 }
 
 export function clearDoneTodos(): void {

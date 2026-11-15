@@ -2,15 +2,15 @@ import { useEffect, useState } from 'react'
 import { ArrowUpRight, ChevronRight, Newspaper, RefreshCw, Trash2 } from 'lucide-react'
 import { DAILY_BRIEF_SITE, type DailyBriefStatus } from '@shared/daily-briefs'
 import { Alert } from '../../components/ui/Alert'
+import { Button } from '../../components/ui/Button'
 import { ConfirmDialog } from '../../components/ui/Dialog'
 import { EmptyState } from '../../components/ui/EmptyState'
-import { PageHeader } from '../../components/ui/PageHeader'
 import { Spinner } from '../../components/ui/Spinner'
 import { formatDate, humanError } from '../../lib/utils'
-import { defineModule } from '../../modules/defineModule'
-import './daily-briefs.css'
+import './daily-brief.css'
 
-function DailyBriefsPage() {
+/** 热点追踪页内的「每日简报」视图：AI Hot 中文要闻的本地存档。 */
+export function DailyBriefPanel() {
   const [status, setStatus] = useState<DailyBriefStatus | null>(null)
   const [readError, setReadError] = useState<string | null>(null)
   const [deletingDate, setDeletingDate] = useState<string | null>(null)
@@ -57,25 +57,25 @@ function DailyBriefsPage() {
   const loading = !error && (!status || (status.syncing && items.length === 0))
 
   return (
-    <div className="page daily-briefs-page">
-      <PageHeader title="每日简报" actions={(
-        <button type="button" className="button primary" disabled={status?.syncing} onClick={refresh}>
-          <RefreshCw size={14} aria-hidden="true" />{status?.syncing ? '正在刷新' : '立即刷新'}
-        </button>
-      )} />
-      <div className="daily-briefs-source">
-        <span role="status">
+    <section className="hotspot-board daily-brief-board" aria-label="每日简报">
+      <div className="reference-inline daily-brief-head">
+        <span className="muted reference-meta" role="status">
           {lastSyncedAt != null ? `上次同步 ${formatDate(lastSyncedAt, 'yyyy-MM-dd HH:mm')}` : '来源 · AI Hot 中文版'}
         </span>
-        <a className="button ghost sm" href={DAILY_BRIEF_SITE} target="_blank" rel="noreferrer">
-          打开 AI Hot 中文简报 <ArrowUpRight size={13} aria-hidden="true" />
-        </a>
+        <div className="reference-inline">
+          <a className="reference-link reference-meta" href={DAILY_BRIEF_SITE} target="_blank" rel="noreferrer">
+            打开 AI Hot 中文简报 <ArrowUpRight size={13} aria-hidden="true" />
+          </a>
+          <Button type="button" loading={status?.syncing} onClick={refresh}>
+            {!status?.syncing && <RefreshCw size={14} aria-hidden="true" />}{status?.syncing ? '正在刷新' : '刷新简报'}
+          </Button>
+        </div>
       </div>
       {error && <Alert tone="danger" title="简报暂未更新">{error}</Alert>}
       {loading ? <div className="page-loading"><Spinner /></div> : items.length === 0 ? (
         <EmptyState icon={Newspaper} title="暂无已保存的简报" description="有新简报时会自动保存到这里。" />
       ) : (
-        <section className="daily-briefs-list" aria-label="简报列表">
+        <section className="daily-brief-list" aria-label="简报列表">
           {items.map(item => {
             const syncedDate = formatDate(item.syncedAt, 'yyyy-MM-dd')
             return (
@@ -126,16 +126,6 @@ function DailyBriefsPage() {
         description="这期的要闻和摘要会从本地删除。以后同步时会跳过这期。"
         confirmLabel="删除简报" loading={removing}
         onClose={() => { if (!removing) setDeletingDate(null) }} onConfirm={() => void remove()} />
-    </div>
+    </section>
   )
 }
-
-export default defineModule({
-  id: 'daily-briefs',
-  name: '每日简报',
-  group: '外部数据',
-  icon: Newspaper,
-  order: 49,
-  keywords: ['AI 每日简报', 'AI每日简报', 'AI Hot', 'RSS', '新闻', '资讯', '日报'],
-  page: DailyBriefsPage
-})
